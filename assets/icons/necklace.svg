@@ -1,0 +1,52 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="necklaceGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE55C"/>
+      <stop offset="50%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFA500"/>
+    </linearGradient>
+    <radialGradient id="pearlGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFF"/>
+      <stop offset="70%" style="stop-color:#F0E68C"/>
+      <stop offset="100%" style="stop-color:#E6D8AD"/>
+    </radialGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter>
+  </defs>
+  
+  <!-- Chain -->
+  <path d="M 32,8 Q 20,15 15,25 Q 12,35 15,45 Q 20,55 32,60" 
+        fill="none" stroke="url(#necklaceGold)" stroke-width="3" filter="url(#shadow)"/>
+  <path d="M 32,8 Q 44,15 49,25 Q 52,35 49,45 Q 44,55 32,60" 
+        fill="none" stroke="url(#necklaceGold)" stroke-width="3" filter="url(#shadow)"/>
+  
+  <!-- Chain links -->
+  <g fill="none" stroke="url(#necklaceGold)" stroke-width="2.5">
+    <circle cx="25" cy="18" r="2.5"/>
+    <circle cx="39" cy="18" r="2.5"/>
+    <circle cx="18" cy="30" r="2.5"/>
+    <circle cx="46" cy="30" r="2.5"/>
+    <circle cx="20" cy="45" r="2.5"/>
+    <circle cx="44" cy="45" r="2.5"/>
+  </g>
+  
+  <!-- Center pendant -->
+  <g filter="url(#shadow)">
+    <ellipse cx="32" cy="48" rx="8" ry="10" fill="url(#necklaceGold)"/>
+    <ellipse cx="32" cy="48" rx="6" ry="8" fill="url(#pearlGlow)"/>
+    <ellipse cx="31" cy="45" rx="2" ry="3" fill="#FFF" opacity="0.6"/>
+  </g>
+  
+  <!-- Decorative gems -->
+  <g>
+    <circle cx="28" cy="35" r="2" fill="#4ECDC4" opacity="0.8" filter="url(#shadow)"/>
+    <circle cx="36" cy="35" r="2" fill="#4ECDC4" opacity="0.8" filter="url(#shadow)"/>
+    <circle cx="32" cy="30" r="2.5" fill="#FF6B9D" opacity="0.8" filter="url(#shadow)"/>
+  </g>
+  
+  <!-- Sparkles -->
+  <g fill="#FFE55C" opacity="0.7">
+    <circle cx="22" cy="25" r="1"/>
+    <circle cx="42" cy="25" r="1"/>
+    <path d="M 32,52 L 31,50 L 32,48 L 33,50 Z"/>
+  </g>
+</svg>

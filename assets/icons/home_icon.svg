@@ -1,0 +1,25 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="homeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+    <filter id="homeShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- House base -->
+  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" 
+        fill="url(#homeGradient)" 
+        filter="url(#homeShadow)"
+        stroke="#B8860B" 
+        stroke-width="0.5"/>
+  
+  <!-- Door -->
+  <rect x="11" y="16" width="2" height="4" fill="#8B4513" opacity="0.8"/>
+  
+  <!-- Windows -->
+  <circle cx="8" cy="14" r="0.8" fill="#87CEEB" opacity="0.7"/>
+  <circle cx="16" cy="14" r="0.8" fill="#87CEEB" opacity="0.7"/>
+</svg>

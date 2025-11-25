@@ -1,0 +1,37 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ringGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE55C"/>
+      <stop offset="50%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFA500"/>
+    </linearGradient>
+    <radialGradient id="gemGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FF6B9D;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#C44569;stop-opacity:1"/>
+    </radialGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter>
+  </defs>
+  
+  <!-- Ring band -->
+  <ellipse cx="32" cy="45" rx="22" ry="14" fill="none" stroke="url(#ringGold)" stroke-width="6" filter="url(#shadow)"/>
+  <ellipse cx="32" cy="45" rx="16" ry="10" fill="none" stroke="url(#ringGold)" stroke-width="3" opacity="0.5"/>
+  
+  <!-- Ring top -->
+  <path d="M 22,35 Q 32,25 42,35" fill="none" stroke="url(#ringGold)" stroke-width="5" filter="url(#shadow)"/>
+  <path d="M 24,36 Q 32,28 40,36" fill="none" stroke="url(#ringGold)" stroke-width="3" opacity="0.6"/>
+  
+  <!-- Diamond/Gem -->
+  <g filter="url(#shadow)">
+    <path d="M 32,12 L 27,22 L 32,32 L 37,22 Z" fill="url(#gemGlow)"/>
+    <path d="M 32,12 L 27,22 L 32,18 L 37,22 Z" fill="#FF8FA3" opacity="0.7"/>
+    <line x1="32" y1="12" x2="32" y2="32" stroke="#FFF" stroke-width="1" opacity="0.3"/>
+  </g>
+  
+  <!-- Sparkles -->
+  <g fill="#FFE55C" opacity="0.8">
+    <circle cx="18" cy="28" r="1.5"/>
+    <circle cx="46" cy="28" r="1.5"/>
+    <circle cx="32" cy="8" r="1"/>
+    <path d="M 32,6 L 31,4 L 32,2 L 33,4 Z"/>
+  </g>
+</svg>

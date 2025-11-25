@@ -1,0 +1,51 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="braceletGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE55C"/>
+      <stop offset="50%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFA500"/>
+    </linearGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter>
+  </defs>
+  
+  <!-- Main bracelet band -->
+  <ellipse cx="32" cy="32" rx="24" ry="18" fill="none" stroke="url(#braceletGold)" stroke-width="7" filter="url(#shadow)"/>
+  <ellipse cx="32" cy="32" rx="18" ry="13" fill="none" stroke="url(#braceletGold)" stroke-width="4" opacity="0.5"/>
+  
+  <!-- Decorative pattern on band -->
+  <g fill="url(#braceletGold)" filter="url(#shadow)">
+    <!-- Top -->
+    <circle cx="32" cy="14" r="3"/>
+    <circle cx="22" cy="17" r="2.5"/>
+    <circle cx="42" cy="17" r="2.5"/>
+    
+    <!-- Sides -->
+    <circle cx="14" cy="28" r="2.5"/>
+    <circle cx="50" cy="28" r="2.5"/>
+    <circle cx="12" cy="36" r="2.5"/>
+    <circle cx="52" cy="36" r="2.5"/>
+    
+    <!-- Bottom -->
+    <circle cx="20" cy="46" r="2.5"/>
+    <circle cx="44" cy="46" r="2.5"/>
+    <circle cx="32" cy="50" r="3"/>
+  </g>
+  
+  <!-- Center gem -->
+  <g filter="url(#shadow)">
+    <circle cx="32" cy="32" r="5" fill="#FF6B9D"/>
+    <circle cx="31" cy="30" r="2" fill="#FFF" opacity="0.5"/>
+  </g>
+  
+  <!-- Small accent gems -->
+  <circle cx="22" cy="32" r="2.5" fill="#4ECDC4" opacity="0.9" filter="url(#shadow)"/>
+  <circle cx="42" cy="32" r="2.5" fill="#4ECDC4" opacity="0.9" filter="url(#shadow)"/>
+  
+  <!-- Sparkles -->
+  <g fill="#FFE55C" opacity="0.8">
+    <circle cx="28" cy="20" r="1"/>
+    <circle cx="36" cy="20" r="1"/>
+    <circle cx="28" cy="44" r="1"/>
+    <circle cx="36" cy="44" r="1"/>
+  </g>
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <g fill="none" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Shopping cart -->
+    <path d="M65 45 L70 75 L140 75 L145 45" fill="none"/>
+    <path d="M70 75 L75 115 C75 120 77 125 82 125 L128 125 C133 125 135 120 135 115 L140 75" fill="none"/>
+    
+    <!-- Handle -->
+    <circle cx="50" cy="45" r="6" fill="#D4AF37"/>
+    <path d="M56 45 L65 45"/>
+    
+    <!-- Wheels -->
+    <circle cx="85" cy="140" r="8" stroke-width="2"/>
+    <circle cx="125" cy="140" r="8" stroke-width="2"/>
+    
+    <!-- Empty icon - dashed lines inside cart -->
+    <line x1="85" y1="90" x2="125" y2="90" stroke-dasharray="5,5" opacity="0.5"/>
+    <line x1="85" y1="105" x2="115" y2="105" stroke-dasharray="5,5" opacity="0.5"/>
+    
+    <!-- Sad face -->
+    <circle cx="105" cy="55" r="2" fill="#D4AF37"/>
+    <path d="M95 65 Q105 60 115 65" fill="none"/>
+  </g>
+  
+  <text x="100" y="175" font-family="Arial, sans-serif" font-size="14" fill="#D4AF37" text-anchor="middle" opacity="0.7">Bo'sh savat</text>
+</svg>

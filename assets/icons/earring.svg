@@ -1,0 +1,46 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="earringGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE55C"/>
+      <stop offset="50%" style="stop-color:#FFD700"/>
+      <stop offset="100%" style="stop-color:#FFA500"/>
+    </linearGradient>
+    <radialGradient id="pearlShine" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFF"/>
+      <stop offset="100%" style="stop-color:#F5F5DC"/>
+    </radialGradient>
+    <filter id="shadow"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.3"/></filter>
+  </defs>
+  
+  <!-- Hook -->
+  <path d="M 32,10 Q 28,8 26,10 Q 24,12 26,14 L 32,20" 
+        fill="none" stroke="url(#earringGold)" stroke-width="3" stroke-linecap="round" filter="url(#shadow)"/>
+  
+  <!-- Chain -->
+  <line x1="32" y1="20" x2="32" y2="35" stroke="url(#earringGold)" stroke-width="2.5" filter="url(#shadow)"/>
+  
+  <!-- Decorative links -->
+  <g fill="none" stroke="url(#earringGold)" stroke-width="2">
+    <circle cx="32" cy="25" r="2"/>
+    <circle cx="32" cy="30" r="2"/>
+  </g>
+  
+  <!-- Main pendant (teardrop shape) -->
+  <g filter="url(#shadow)">
+    <ellipse cx="32" cy="46" rx="10" ry="14" fill="url(#earringGold)"/>
+    <path d="M 32,34 Q 38,38 38,46 Q 38,54 32,60 Q 26,54 26,46 Q 26,38 32,34 Z" fill="url(#pearlShine)" opacity="0.8"/>
+    
+    <!-- Pearl highlight -->
+    <ellipse cx="30" cy="42" rx="3" ry="4" fill="#FFF" opacity="0.5"/>
+  </g>
+  
+  <!-- Small decorative gem at top -->
+  <circle cx="32" cy="36" r="2.5" fill="#4ECDC4" opacity="0.9" filter="url(#shadow)"/>
+  
+  <!-- Sparkles -->
+  <g fill="#FFE55C" opacity="0.8">
+    <circle cx="24" cy="45" r="1"/>
+    <circle cx="40" cy="45" r="1"/>
+    <path d="M 32,58 L 31,56 L 32,54 L 33,56 Z"/>
+  </g>
+</svg>
