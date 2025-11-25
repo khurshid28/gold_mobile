@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/widgets/custom_icon.dart';
+import 'contract_page.dart';
+import '../widgets/pin_verification_bottom_sheet.dart';
 
 class InstallmentPage extends StatefulWidget {
   final String productId;
@@ -300,7 +303,13 @@ class _InstallmentPageState extends State<InstallmentPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Tasdiqlash'),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle_rounded, color: AppColors.success),
+            SizedBox(width: 12.w),
+            Text('Tasdiqlash'),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,11 +328,29 @@ class _InstallmentPageState extends State<InstallmentPage> {
               ),
             ),
             SizedBox(height: AppSizes.paddingMD.h),
-            Text(
-              'Tasdiqlash uchun SMS kod yuboriladi.',
-              style: TextStyle(
-                fontSize: AppSizes.fontSM.sp,
-                color: isDark ? AppColors.textLightOnDark : AppColors.textLight,
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: AppColors.info.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: AppColors.info.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_rounded, color: AppColors.info, size: 20.sp),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'Tasdiqlash uchun SMS kod yuboriladi',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -335,13 +362,116 @@ class _InstallmentPageState extends State<InstallmentPage> {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO: Navigate to OTP verification
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Tasdiqlash SMS yuborildi')),
-              );
+              _showContractBottomSheet(context, isDark);
             },
-            child: const Text('Tasdiqlash'),
+            child: const Text('Davom etish'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showContractBottomSheet(BuildContext context, bool isDark) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ContractPage(
+          productName: widget.productName,
+          productPrice: widget.productPrice,
+          selectedMonths: _selectedMonths,
+          monthlyPayment: _monthlyPayment,
+          onAgree: () {
+            _showPinVerificationBottomSheet(context, isDark);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showPinVerificationBottomSheet(BuildContext context, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: false,
+      builder: (context) => PinVerificationBottomSheet(
+        isDark: isDark,
+        onVerified: () {
+          Navigator.pop(context);
+          _showSuccessDialog(context, isDark);
+        },
+      ),
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, bool isDark) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80.w,
+              height: 80.h,
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.check_circle_rounded,
+                color: AppColors.success,
+                size: 50.sp,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            Text(
+              'Muvaffaqiyatli!',
+              style: TextStyle(
+                fontSize: 22.sp,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'Bo\'lib to\'lash shartnomasi tuzildi',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              '${widget.productName}',
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.gold,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                Navigator.pop(context); // Close installment page
+                context.push('/my-purchases');
+              },
+              child: const Text('Mening haridlarimga o\'tish'),
+            ),
           ),
         ],
       ),

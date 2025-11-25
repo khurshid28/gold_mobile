@@ -392,36 +392,6 @@ class _SearchPageState extends State<SearchPage> {
               },
               isDark: isDark,
             ),
-            _SortOption(
-              label: 'Arzon narxdan',
-              value: 'price_asc',
-              selectedValue: _sortBy,
-              onTap: () {
-                setState(() => _sortBy = 'price_asc');
-                Navigator.pop(context);
-              },
-              isDark: isDark,
-            ),
-            _SortOption(
-              label: 'Qimmat narxdan',
-              value: 'price_desc',
-              selectedValue: _sortBy,
-              onTap: () {
-                setState(() => _sortBy = 'price_desc');
-                Navigator.pop(context);
-              },
-              isDark: isDark,
-            ),
-            _SortOption(
-              label: 'Yangi mahsulotlar',
-              value: 'newest',
-              selectedValue: _sortBy,
-              onTap: () {
-                setState(() => _sortBy = 'newest');
-                Navigator.pop(context);
-              },
-              isDark: isDark,
-            ),
           ],
         ),
       ),

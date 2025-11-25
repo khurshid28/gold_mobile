@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gold_mobile/core/constants/app_strings.dart';
 import 'package:gold_mobile/core/theme/app_theme.dart';
 import 'package:gold_mobile/core/theme/theme_cubit.dart';
 import 'package:gold_mobile/core/utils/app_router.dart';
+import 'package:gold_mobile/core/l10n/app_localizations.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:gold_mobile/features/home/presentation/bloc/home_bloc.dart';
@@ -61,6 +63,17 @@ class MyApp extends StatelessWidget {
                 darkTheme: AppTheme.darkTheme,
                 themeMode: themeMode,
                 routerConfig: AppRouter.router,
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: const [
+                  Locale('uz', ''), // O'zbek
+                  Locale('ru', ''), // Rus
+                ],
+                locale: const Locale('uz', ''), // Default til
                 builder: (context, child) {
                   return MediaQuery(
                     data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),

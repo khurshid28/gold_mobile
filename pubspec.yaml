@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # State Management
   flutter_bloc: ^8.1.6
@@ -57,7 +59,7 @@ dependencies:
   json_annotation: ^4.9.0
   
   # Utils
-  intl: ^0.19.0
+  intl: ^0.20.2
   uuid: ^4.5.1
   
   # Icons

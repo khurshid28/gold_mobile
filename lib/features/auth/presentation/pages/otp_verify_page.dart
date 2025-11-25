@@ -23,7 +23,7 @@ class OtpVerifyPage extends StatefulWidget {
   State<OtpVerifyPage> createState() => _OtpVerifyPageState();
 }
 
-class _OtpVerifyPageState extends State<OtpVerifyPage> with WidgetsBindingObserver {
+class _OtpVerifyPageState extends State<OtpVerifyPage> {
   final _pinController = TextEditingController();
   final _focusNode = FocusNode();
   
@@ -31,40 +31,19 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> with WidgetsBindingObserv
   Timer? _timer;
   int _remainingSeconds = 120; // 2 minutes
   bool _canResend = false;
-  DateTime? _backgroundStartTime;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _startTimer();
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _pinController.dispose();
     _focusNode.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      // App went to background
-      _backgroundStartTime = DateTime.now();
-    } else if (state == AppLifecycleState.resumed && _backgroundStartTime != null) {
-      // App came back to foreground
-      final elapsedSeconds = DateTime.now().difference(_backgroundStartTime!).inSeconds;
-      setState(() {
-        _remainingSeconds = (_remainingSeconds - elapsedSeconds).clamp(0, 120);
-        if (_remainingSeconds == 0) {
-          _canResend = true;
-        }
-      });
-      _backgroundStartTime = null;
-    }
   }
 
   void _startTimer() {
@@ -103,27 +82,32 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     final defaultPinTheme = PinTheme(
       width: 56,
       height: 56,
-      textStyle: const TextStyle(
+      textStyle: TextStyle(
         fontSize: 22,
-        color: AppColors.textPrimary,
+        color: isDark ? AppColors.textDarkOnDark : AppColors.textPrimary,
         fontWeight: FontWeight.w600,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(color: AppColors.border, width: 2),
+        color: isDark ? AppColors.cardBackgroundDark : AppColors.surface,
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : AppColors.border,
+          width: 2,
+        ),
         borderRadius: BorderRadius.circular(AppSizes.radiusMD),
       ),
     );
 
     final focusedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration?.copyWith(
-        border: Border.all(color: AppColors.primary, width: 2),
+        border: Border.all(color: AppColors.gold, width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.2),
+            color: AppColors.gold.withOpacity(0.3),
             blurRadius: 8,
             spreadRadius: 2,
           ),
@@ -133,8 +117,10 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> with WidgetsBindingObserv
 
     final submittedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration?.copyWith(
-        color: AppColors.primaryLight.withOpacity(0.1),
-        border: Border.all(color: AppColors.primary, width: 2),
+        color: isDark 
+            ? AppColors.gold.withOpacity(0.15)
+            : AppColors.primaryLight.withOpacity(0.1),
+        border: Border.all(color: AppColors.gold, width: 2),
       ),
     );
 
@@ -145,10 +131,14 @@ class _OtpVerifyPageState extends State<OtpVerifyPage> with WidgetsBindingObserv
           icon: Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
+              color: isDark ? AppColors.cardBackgroundDark : Colors.white.withOpacity(0.9),
               shape: BoxShape.circle,
             ),
-            child: const CustomIcon(name: 'back', size: 20, color: AppColors.textDark),
+            child: CustomIcon(
+              name: 'back',
+              size: 20,
+              color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+            ),
           ),
         ),
       ),

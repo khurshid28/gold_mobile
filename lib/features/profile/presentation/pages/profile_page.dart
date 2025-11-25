@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gold_mobile/core/constants/app_colors.dart';
 import 'package:gold_mobile/core/constants/app_sizes.dart';
-import 'package:gold_mobile/core/constants/app_strings.dart';
+import 'package:gold_mobile/core/l10n/app_localizations.dart';
 import 'package:gold_mobile/core/theme/theme_cubit.dart';
 import 'package:gold_mobile/core/widgets/custom_icon.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_bloc.dart';
@@ -21,7 +21,7 @@ class ProfilePage extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.profile),
+        title: Text(AppLocalizations.of(context).profile),
       ),
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
@@ -42,14 +42,14 @@ class ProfilePage extends StatelessWidget {
                     items: [
                       _MenuItem(
                         iconName: 'shopping_bag',
-                        title: 'Mening haridlarim',
+                        title: AppLocalizations.of(context).myPurchases,
                         onTap: () {
                           context.push('/my-purchases');
                         },
                       ),
                       _MenuItem(
                         iconName: 'store',
-                        title: 'Do\'konlar',
+                        title: AppLocalizations.of(context).stores,
                         onTap: () {
                           context.push('/stores');
                         },
@@ -61,7 +61,7 @@ class ProfilePage extends StatelessWidget {
                     items: [
                       _MenuItem(
                         iconName: 'language',
-                        title: 'Til',
+                        title: AppLocalizations.of(context).language,
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -97,7 +97,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                       _MenuItem(
                         iconName: 'notification',
-                        title: AppStrings.notifications,
+                        title: AppLocalizations.of(context).notifications,
                         trailing: Switch(
                           value: true,
                           onChanged: (value) {
@@ -114,14 +114,14 @@ class ProfilePage extends StatelessWidget {
                     items: [
                       _MenuItem(
                         iconName: 'help',
-                        title: AppStrings.help,
+                        title: AppLocalizations.of(context).help,
                         onTap: () {
                           // TODO: Navigate to help
                         },
                       ),
                       _MenuItem(
                         iconName: 'info',
-                        title: AppStrings.about,
+                        title: AppLocalizations.of(context).about,
                         onTap: () {
                           _showAboutDialog(context);
                         },
@@ -166,7 +166,7 @@ class ProfilePage extends StatelessWidget {
                   },
                   icon: const CustomIcon(name: 'logout', size: 20, color: AppColors.error),
                   label: Text(
-                  AppStrings.logout,
+                  AppLocalizations.of(context).logout,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: AppColors.error,
                         fontWeight: FontWeight.w600,
@@ -306,12 +306,12 @@ class ProfilePage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Chiqish'),
-        content: const Text('Haqiqatan ham chiqmoqchimisiz?'),
+        title: Text(AppLocalizations.of(context).logout),
+        content: Text('Haqiqatan ham chiqmoqchimisiz?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(AppStrings.cancel),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
           TextButton(
             onPressed: () {
@@ -320,7 +320,7 @@ class ProfilePage extends StatelessWidget {
               context.go('/phone-login');
             },
             child: Text(
-              AppStrings.logout,
+              AppLocalizations.of(context).logout,
               style: const TextStyle(color: AppColors.error),
             ),
           ),
@@ -333,12 +333,12 @@ class ProfilePage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(AppStrings.appName),
+        title: Text(AppLocalizations.of(context).appName),
         content:  Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppStrings.appTagline),
+            Text(AppLocalizations.of(context).appTagline),
             SizedBox(height: AppSizes.spaceMD),
             Text('Version: 1.0.0'),
             SizedBox(height: AppSizes.spaceSM),
@@ -348,7 +348,7 @@ class ProfilePage extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(AppStrings.ok),
+            child: Text(AppLocalizations.of(context).ok),
           ),
         ],
       ),
@@ -435,10 +435,12 @@ class _MenuSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       margin: EdgeInsets.symmetric(horizontal: AppSizes.paddingMD.w),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: isDark ? AppColors.cardBackgroundDark : AppColors.surface,
         borderRadius: BorderRadius.circular(AppSizes.radiusMD),
         boxShadow: [
           BoxShadow(

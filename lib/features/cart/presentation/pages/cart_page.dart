@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/widgets/custom_icon.dart';
@@ -11,6 +12,8 @@ import '../../../../core/widgets/loading_widget.dart';
 import '../bloc/cart_bloc.dart';
 import '../bloc/cart_event.dart';
 import '../bloc/cart_state.dart';
+import '../../../installment/presentation/pages/contract_page.dart';
+import '../../../installment/presentation/widgets/pin_verification_bottom_sheet.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({super.key});
@@ -193,7 +196,7 @@ class _CartItemCard extends StatelessWidget {
             
             // Remove button
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 20),
+              icon: const CustomIcon(name: 'close', size: 20),
               onPressed: () {
                 context.read<CartBloc>().add(RemoveFromCart(item.id));
               },
@@ -256,7 +259,7 @@ class _QuantityControl extends StatelessWidget {
             },
             child: Padding(
               padding: EdgeInsets.all(4.w),
-              child: Icon(Icons.remove_rounded, size: 16.sp, color: AppColors.primary),
+              child: CustomIcon(name: 'close', size: 16, color: AppColors.primary),
             ),
           ),
           Padding(
@@ -280,7 +283,7 @@ class _QuantityControl extends StatelessWidget {
             },
             child: Padding(
               padding: EdgeInsets.all(4.w),
-              child: Icon(Icons.add_rounded, size: 16.sp, color: AppColors.primary),
+              child: CustomIcon(name: 'check', size: 16, color: AppColors.primary),
             ),
           ),
         ],
@@ -350,7 +353,7 @@ class _CartSummary extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: Navigate to checkout
+                  _showCheckoutConfirmation(context, state);
                 },
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: AppSizes.paddingMD.h),
@@ -366,4 +369,191 @@ class _CartSummary extends StatelessWidget {
       ),
     );
   }
+
+  void _showCheckoutConfirmation(BuildContext context, CartLoaded state) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    const selectedMonths = 12;
+    final monthlyPayment = state.totalPrice / selectedMonths;
+
+    // Get first item name for display
+    final firstItemName = state.items.isNotEmpty ? state.items.first.item.name : 'Mahsulotlar';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            CustomIcon(name: 'shopping_cart', color: AppColors.gold),
+            SizedBox(width: 12.w),
+            Text('Rasmiylashtirish'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Mahsulotlar soni: ${state.items.length} ta'),
+            SizedBox(height: 8.h),
+            Text('Umumiy summa: ${NumberFormat.currency(symbol: '', decimalDigits: 0).format(state.totalPrice)} so\'m'),
+            SizedBox(height: 8.h),
+            Text('Muddat: $selectedMonths oy'),
+            SizedBox(height: 8.h),
+            Text(
+              'Oylik to\'lov: ${NumberFormat.currency(symbol: '', decimalDigits: 0).format(monthlyPayment)} so\'m',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.gold,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: AppColors.info.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: AppColors.info.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  CustomIcon(name: 'info', color: AppColors.info, size: 20),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'Shartnoma va tasdiqlash kodi yuboriladi',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Bekor qilish'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _showContractPage(context, firstItemName, state.totalPrice, selectedMonths, monthlyPayment, isDark);
+            },
+            child: const Text('Davom etish'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showContractPage(BuildContext context, String productName, double totalPrice, int selectedMonths, double monthlyPayment, bool isDark) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ContractPage(
+          productName: productName,
+          productPrice: totalPrice,
+          selectedMonths: selectedMonths,
+          monthlyPayment: monthlyPayment,
+          onAgree: () {
+            _showPinVerificationBottomSheet(context, isDark);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showPinVerificationBottomSheet(BuildContext context, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: false,
+      builder: (context) => PinVerificationBottomSheet(
+        isDark: isDark,
+        onVerified: () {
+          Navigator.pop(context);
+          _showSuccessDialog(context, isDark);
+        },
+      ),
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, bool isDark) {
+    // Clear cart after successful order
+    context.read<CartBloc>().add(ClearCart());
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80.w,
+              height: 80.h,
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: CustomIcon(
+                name: 'check_circle',
+                color: AppColors.success,
+                size: 50,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            Text(
+              'Muvaffaqiyatli!',
+              style: TextStyle(
+                fontSize: 22.sp,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'Bo\'lib to\'lash shartnomasi tuzildi',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'Savat mahsulotlari',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.gold,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                context.push('/my-purchases');
+              },
+              child: const Text('Mening haridlarimga o\'tish'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
+

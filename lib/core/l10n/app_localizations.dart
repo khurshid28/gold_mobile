@@ -186,6 +186,7 @@ class AppLocalizations {
 
   // Helper getters
   String get appName => translate('appName');
+  String get appTagline => translate('appTagline');
   String get home => translate('home');
   String get categories => translate('categories');
   String get featured => translate('featured');
@@ -199,6 +200,12 @@ class AppLocalizations {
   String get favorites => translate('favorites');
   String get settings => translate('settings');
   String get language => translate('language');
+  String get notifications => translate('notifications');
+  String get help => translate('help');
+  String get about => translate('about');
+  String get logout => translate('logout');
+  String get cancel => translate('cancel');
+  String get ok => translate('ok');
   String get currency => translate('currency');
 }
 

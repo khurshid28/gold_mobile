@@ -62,7 +62,11 @@ class _HomePageState extends State<HomePage> {
         title: const Text(AppStrings.appName),
         actions: [
           IconButton(
-            icon: const CustomIcon(name: 'search', size: 24),
+            icon: CustomIcon(
+              name: 'search',
+              size: 24,
+              color: isDark ? Colors.white : AppColors.textDark,
+            ),
             onPressed: () {
               context.push('/search');
             },

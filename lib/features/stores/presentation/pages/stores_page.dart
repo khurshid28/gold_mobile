@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/widgets/custom_icon.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../domain/entities/store.dart';
+import '../../../installment/presentation/pages/contract_page.dart';
+import '../../../installment/presentation/widgets/pin_verification_bottom_sheet.dart';
 
 class StoresPage extends StatefulWidget {
   const StoresPage({super.key});
@@ -107,9 +110,9 @@ class _StoreCard extends StatelessWidget {
               ),
               errorWidget: (context, url, error) => Container(
                 color: isDark ? AppColors.cardBackgroundDark : AppColors.cardBackgroundLight,
-                child: Icon(
-                  Icons.store_rounded,
-                  size: 64.sp,
+                child: CustomIcon(
+                  name: 'store',
+                  size: 64,
                   color: AppColors.gold,
                 ),
               ),
@@ -238,7 +241,7 @@ class _StoreCard extends StatelessWidget {
                           // Open map with directions
                           // Can use url_launcher with geo: URL
                         },
-                        icon: Icon(Icons.directions_rounded, size: 18.sp),
+                        icon: CustomIcon(name: 'location', size: 18),
                         label: Text(
                           'Yo\'nalish',
                           style: TextStyle(fontSize: 13.sp),
@@ -252,12 +255,11 @@ class _StoreCard extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          // Open phone dialer
-                          // Can use url_launcher with tel: URL
+                          _showRasmiylashtirish(context);
                         },
-                        icon: Icon(Icons.call_rounded, size: 18.sp),
+                        icon: CustomIcon(name: 'check_circle', size: 18),
                         label: Text(
-                          'Qo\'ng\'iroq',
+                          'Rasmiylashtirish',
                           style: TextStyle(fontSize: 13.sp),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -268,6 +270,183 @@ class _StoreCard extends StatelessWidget {
                   ],
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRasmiylashtirish(BuildContext context) {
+    // Sample jewelry item for store purchase
+    const productName = 'Tilla uzuk';
+    const productPrice = 5000000.0;
+    const selectedMonths = 12;
+    const monthlyPayment = productPrice / selectedMonths;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            CustomIcon(name: 'store', color: AppColors.gold),
+            SizedBox(width: 12.w),
+            Text('Rasmiylashtirish'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Do\'kon: ${store.name}'),
+            SizedBox(height: 8.h),
+            Text(
+              'Mahsulotni do\'konda tanlab, bo\'lib to\'lash shartnomasi tuzishingiz mumkin.',
+              style: TextStyle(fontSize: 13.sp),
+            ),
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: AppColors.info.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: AppColors.info.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  CustomIcon(name: 'info', color: AppColors.info, size: 20),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
+                      'Shartnoma va tasdiqlash kodi yuboriladi',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Bekor qilish'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _showContractPage(context, productName, productPrice, selectedMonths, monthlyPayment);
+            },
+            child: const Text('Davom etish'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showContractPage(BuildContext context, String productName, double productPrice, int selectedMonths, double monthlyPayment) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ContractPage(
+          productName: productName,
+          productPrice: productPrice,
+          selectedMonths: selectedMonths,
+          monthlyPayment: monthlyPayment,
+          onAgree: () {
+            _showPinVerificationBottomSheet(context);
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showPinVerificationBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: false,
+      builder: (context) => PinVerificationBottomSheet(
+        isDark: isDark,
+        onVerified: () {
+          Navigator.pop(context);
+          _showSuccessDialog(context);
+        },
+      ),
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 80.w,
+              height: 80.h,
+              decoration: BoxDecoration(
+                color: AppColors.success.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: CustomIcon(
+                name: 'check_circle',
+                color: AppColors.success,
+                size: 50,
+              ),
+            ),
+            SizedBox(height: 20.h),
+            Text(
+              'Muvaffaqiyatli!',
+              style: TextStyle(
+                fontSize: 22.sp,
+                fontWeight: FontWeight.w700,
+                color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'Bo\'lib to\'lash shartnomasi tuzildi',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              store.name,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.gold,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                context.push('/my-purchases');
+              },
+              child: const Text('Mening haridlarimga o\'tish'),
             ),
           ),
         ],

@@ -18,14 +18,18 @@ class ShimmerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Shimmer.fromColors(
-      baseColor: AppColors.shimmerBase,
-      highlightColor: AppColors.shimmerHighlight,
+      baseColor: isDark ? AppColors.cardBackgroundDark : AppColors.shimmerBase,
+      highlightColor: isDark 
+          ? AppColors.cardBackgroundDark.withOpacity(0.5)
+          : AppColors.shimmerHighlight,
       child: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.shimmerBase,
+          color: isDark ? AppColors.cardBackgroundDark : AppColors.shimmerBase,
           borderRadius: borderRadius ?? BorderRadius.circular(AppSizes.radiusMD),
         ),
       ),
@@ -75,9 +79,11 @@ class ProductCardShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: isDark ? AppColors.cardBackgroundDark : AppColors.surface,
         borderRadius: BorderRadius.circular(AppSizes.radiusMD),
       ),
       child: Column(
