@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math' as math;
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/loading_widget.dart';
@@ -17,7 +18,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   late AnimationController _rotateController;
   late AnimationController _fadeController;
   late AnimationController _shimmerController;
-  
+
   late Animation<double> _logoScale;
   late Animation<double> _logoOpacity;
   late Animation<double> _rotateAnimation;
@@ -37,58 +38,47 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _logoScale = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: Curves.elasticOut,
-      ),
+      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
     );
-    
+
     _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _logoController,
         curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
       ),
     );
-    
+
     // Rotation animation
     _rotateController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _rotateAnimation = Tween<double>(begin: 0.0, end: 2 * math.pi).animate(
-      CurvedAnimation(
-        parent: _rotateController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _rotateController, curve: Curves.easeInOut),
     );
-    
+
     // Fade out animation
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    
-    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _fadeController,
-        curve: Curves.easeOut,
-      ),
-    );
-    
+
+    _fadeAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOut));
+
     // Shimmer effect
     _shimmerController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    
+
     _shimmerAnimation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(
-        parent: _shimmerController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
     );
   }
 
@@ -96,21 +86,31 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
     // Start logo animation
     await Future.delayed(const Duration(milliseconds: 300));
     _logoController.forward();
-    
+
     // Start rotation after logo appears
     await Future.delayed(const Duration(milliseconds: 800));
     _rotateController.forward();
-    
+
     // Start shimmer effect
     await Future.delayed(const Duration(milliseconds: 200));
     _shimmerController.repeat();
-    
+
     // Wait and navigate
     await Future.delayed(const Duration(milliseconds: 2500));
-    
+
     if (mounted) {
+      // Check if user is already logged in
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+
       _fadeController.forward().then((_) {
-        context.go('/phone-login');
+        if (isLoggedIn) {
+          // User is logged in, go to home
+          context.go('/home');
+        } else {
+          // User is not logged in, go to login page
+          context.go('/phone-login');
+        }
       });
     }
   }
@@ -127,7 +127,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       body: AnimatedBuilder(
         animation: _fadeAnimation,
@@ -160,7 +160,8 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                       animation: _logoController,
                       builder: (context, child) {
                         final offset = index * 0.1;
-                        final animValue = (_logoController.value + offset) % 1.0;
+                        final animValue =
+                            (_logoController.value + offset) % 1.0;
                         return Positioned(
                           left: (index % 4) * 100.0.w + (animValue * 50.w),
                           top: (index ~/ 4) * 150.0.h + (animValue * 80.h),
@@ -186,7 +187,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                       },
                     );
                   }),
-                  
+
                   // Main content
                   Center(
                     child: Column(
@@ -212,7 +213,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                       shape: BoxShape.circle,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: AppColors.gold.withOpacity(0.3),
+                                          color: AppColors.gold.withOpacity(
+                                            0.3,
+                                          ),
                                           blurRadius: 40,
                                           spreadRadius: 10,
                                         ),
@@ -238,9 +241,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                             );
                           },
                         ),
-                        
+
                         SizedBox(height: 40.h),
-                        
+
                         // Brand name with shimmer effect
                         AnimatedBuilder(
                           animation: _logoController,
@@ -259,17 +262,21 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                                       foreground: Paint()
                                         ..style = PaintingStyle.stroke
                                         ..strokeWidth = 2
-                                        ..color = AppColors.gold.withOpacity(0.5),
+                                        ..color = AppColors.gold.withOpacity(
+                                          0.5,
+                                        ),
                                       shadows: [
                                         Shadow(
-                                          color: AppColors.gold.withOpacity(0.5),
+                                          color: AppColors.gold.withOpacity(
+                                            0.5,
+                                          ),
                                           blurRadius: 20,
                                           offset: const Offset(0, 4),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  
+
                                   // Main text with shimmer
                                   AnimatedBuilder(
                                     animation: _shimmerAnimation,
@@ -309,9 +316,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                             );
                           },
                         ),
-                        
+
                         SizedBox(height: 12.h),
-                        
+
                         // Tagline
                         AnimatedBuilder(
                           animation: _logoController,
@@ -332,9 +339,9 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
                             );
                           },
                         ),
-                        
+
                         SizedBox(height: 60.h),
-                        
+
                         // Loading indicator
                         AnimatedBuilder(
                           animation: _logoController,

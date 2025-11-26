@@ -7,7 +7,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/widgets/custom_icon.dart';
 import 'contract_page.dart';
-import '../widgets/pin_verification_bottom_sheet.dart';
 
 class InstallmentPage extends StatefulWidget {
   final String productId;
@@ -36,7 +35,7 @@ class _InstallmentPageState extends State<InstallmentPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -44,7 +43,9 @@ class _InstallmentPageState extends State<InstallmentPage> {
           icon: Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.cardBackgroundDark : Colors.white.withOpacity(0.9),
+              color: isDark
+                  ? AppColors.cardBackgroundDark
+                  : Colors.white.withOpacity(0.9),
               shape: BoxShape.circle,
             ),
             child: CustomIcon(
@@ -84,10 +85,14 @@ class _InstallmentPageState extends State<InstallmentPage> {
                       height: 80.h,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        color: isDark ? AppColors.cardBackgroundDark : AppColors.cardBackgroundLight,
+                        color: isDark
+                            ? AppColors.cardBackgroundDark
+                            : AppColors.cardBackgroundLight,
                       ),
                       errorWidget: (context, url, error) => Container(
-                        color: isDark ? AppColors.cardBackgroundDark : AppColors.cardBackgroundLight,
+                        color: isDark
+                            ? AppColors.cardBackgroundDark
+                            : AppColors.cardBackgroundLight,
                         child: Icon(Icons.image_rounded, color: AppColors.gold),
                       ),
                     ),
@@ -102,12 +107,18 @@ class _InstallmentPageState extends State<InstallmentPage> {
                           style: TextStyle(
                             fontSize: 15.sp,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+                            color: isDark
+                                ? AppColors.textDarkOnDark
+                                : AppColors.textDark,
                           ),
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          NumberFormat.currency(symbol: '', decimalDigits: 0).format(widget.productPrice) + ' so\'m',
+                          NumberFormat.currency(
+                                symbol: '',
+                                decimalDigits: 0,
+                              ).format(widget.productPrice) +
+                              ' so\'m',
                           style: TextStyle(
                             fontSize: 17.sp,
                             fontWeight: FontWeight.w700,
@@ -120,25 +131,27 @@ class _InstallmentPageState extends State<InstallmentPage> {
                 ],
               ),
             ),
-            
+
             Padding(
               padding: EdgeInsets.all(AppSizes.paddingMD.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: AppSizes.paddingMD.h),
-                  
+
                   // Title
                   Text(
                     'Muddat tanlang',
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+                      color: isDark
+                          ? AppColors.textDarkOnDark
+                          : AppColors.textDark,
                     ),
                   ),
                   SizedBox(height: AppSizes.paddingMD.h),
-                  
+
                   // Month options
                   Wrap(
                     spacing: 10.w,
@@ -157,9 +170,9 @@ class _InstallmentPageState extends State<InstallmentPage> {
                       );
                     }).toList(),
                   ),
-                  
+
                   SizedBox(height: AppSizes.paddingXL.h),
-                  
+
                   // Payment details card
                   Container(
                     padding: EdgeInsets.all(AppSizes.paddingMD.w),
@@ -188,11 +201,17 @@ class _InstallmentPageState extends State<InstallmentPage> {
                               'Oylik to\'lov:',
                               style: TextStyle(
                                 fontSize: 15.sp,
-                                color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                                color: isDark
+                                    ? AppColors.textMediumOnDark
+                                    : AppColors.textMedium,
                               ),
                             ),
                             Text(
-                              NumberFormat.currency(symbol: '', decimalDigits: 0).format(_monthlyPayment) + ' so\'m',
+                              NumberFormat.currency(
+                                    symbol: '',
+                                    decimalDigits: 0,
+                                  ).format(_monthlyPayment) +
+                                  ' so\'m',
                               style: TextStyle(
                                 fontSize: 22.sp,
                                 fontWeight: FontWeight.w800,
@@ -204,7 +223,7 @@ class _InstallmentPageState extends State<InstallmentPage> {
                         SizedBox(height: AppSizes.paddingMD.h),
                         Divider(color: AppColors.gold.withOpacity(0.3)),
                         SizedBox(height: AppSizes.paddingMD.h),
-                        
+
                         // Details rows
                         _DetailRow(
                           label: 'Muddat',
@@ -214,26 +233,33 @@ class _InstallmentPageState extends State<InstallmentPage> {
                         SizedBox(height: AppSizes.paddingSM.h),
                         _DetailRow(
                           label: 'Jami summa',
-                          value: NumberFormat.currency(symbol: '', decimalDigits: 0).format(widget.productPrice) + ' so\'m',
+                          value:
+                              NumberFormat.currency(
+                                symbol: '',
+                                decimalDigits: 0,
+                              ).format(widget.productPrice) +
+                              ' so\'m',
                           isDark: isDark,
                         ),
                       ],
                     ),
                   ),
-                  
+
                   SizedBox(height: AppSizes.paddingXL.h),
-                  
+
                   // Benefits
                   Text(
                     'Afzalliklar',
                     style: TextStyle(
                       fontSize: 18.sp,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+                      color: isDark
+                          ? AppColors.textDarkOnDark
+                          : AppColors.textDark,
                     ),
                   ),
                   SizedBox(height: AppSizes.paddingMD.h),
-                  
+
                   _BenefitItem(
                     iconName: 'check_circle',
                     text: 'Boshlang\'ich to\'lovsiz',
@@ -254,9 +280,9 @@ class _InstallmentPageState extends State<InstallmentPage> {
                     text: 'Erkin muddatni tanlash',
                     isDark: isDark,
                   ),
-                  
+
                   SizedBox(height: AppSizes.paddingXL.h),
-                  
+
                   // Continue button
                   SizedBox(
                     width: double.infinity,
@@ -266,7 +292,9 @@ class _InstallmentPageState extends State<InstallmentPage> {
                         _showConfirmationDialog(context, isDark);
                       },
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: AppSizes.paddingMD.h),
+                        padding: EdgeInsets.symmetric(
+                          vertical: AppSizes.paddingMD.h,
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -288,7 +316,7 @@ class _InstallmentPageState extends State<InstallmentPage> {
                       ),
                     ),
                   ),
-                  
+
                   SizedBox(height: AppSizes.paddingXL.h),
                 ],
               ),
@@ -316,7 +344,9 @@ class _InstallmentPageState extends State<InstallmentPage> {
           children: [
             Text('Mahsulot: ${widget.productName}'),
             SizedBox(height: AppSizes.paddingSM.h),
-            Text('Narx: ${NumberFormat.currency(symbol: '', decimalDigits: 0).format(widget.productPrice)} so\'m'),
+            Text(
+              'Narx: ${NumberFormat.currency(symbol: '', decimalDigits: 0).format(widget.productPrice)} so\'m',
+            ),
             SizedBox(height: AppSizes.paddingSM.h),
             Text('Muddat: $_selectedMonths oy'),
             SizedBox(height: AppSizes.paddingSM.h),
@@ -333,9 +363,7 @@ class _InstallmentPageState extends State<InstallmentPage> {
               decoration: BoxDecoration(
                 color: AppColors.info.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(
-                  color: AppColors.info.withOpacity(0.3),
-                ),
+                border: Border.all(color: AppColors.info.withOpacity(0.3)),
               ),
               child: Row(
                 children: [
@@ -346,7 +374,9 @@ class _InstallmentPageState extends State<InstallmentPage> {
                       'Tasdiqlash uchun SMS kod yuboriladi',
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                        color: isDark
+                            ? AppColors.textMediumOnDark
+                            : AppColors.textMedium,
                       ),
                     ),
                   ),
@@ -377,7 +407,9 @@ class _InstallmentPageState extends State<InstallmentPage> {
       context,
       MaterialPageRoute(
         builder: (context) => ContractPage(
+          productId: widget.productId,
           productName: widget.productName,
+          productImage: widget.productImage,
           productPrice: widget.productPrice,
           selectedMonths: _selectedMonths,
           monthlyPayment: _monthlyPayment,
@@ -390,19 +422,8 @@ class _InstallmentPageState extends State<InstallmentPage> {
   }
 
   void _showPinVerificationBottomSheet(BuildContext context, bool isDark) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      isDismissible: false,
-      builder: (context) => PinVerificationBottomSheet(
-        isDark: isDark,
-        onVerified: () {
-          Navigator.pop(context);
-          _showSuccessDialog(context, isDark);
-        },
-      ),
-    );
+    // This method is now called from ContractPage after video verification
+    _showSuccessDialog(context, isDark);
   }
 
   void _showSuccessDialog(BuildContext context, bool isDark) {
@@ -444,7 +465,9 @@ class _InstallmentPageState extends State<InstallmentPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                color: isDark
+                    ? AppColors.textMediumOnDark
+                    : AppColors.textMedium,
               ),
             ),
             SizedBox(height: 8.h),
@@ -497,17 +520,18 @@ class _MonthChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: 18.w,
-          vertical: 12.h,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 12.h),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? AppColors.gold 
-              : (isDark ? AppColors.cardBackgroundDark : AppColors.cardBackgroundLight),
+          color: isSelected
+              ? AppColors.gold
+              : (isDark
+                    ? AppColors.cardBackgroundDark
+                    : AppColors.cardBackgroundLight),
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
-            color: isSelected ? AppColors.gold : (isDark ? AppColors.borderDark : AppColors.borderLight),
+            color: isSelected
+                ? AppColors.gold
+                : (isDark ? AppColors.borderDark : AppColors.borderLight),
             width: 1.5,
           ),
           boxShadow: isSelected
@@ -527,8 +551,8 @@ class _MonthChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24.sp,
                 fontWeight: FontWeight.w700,
-                color: isSelected 
-                    ? Colors.white 
+                color: isSelected
+                    ? Colors.white
                     : (isDark ? AppColors.textDarkOnDark : AppColors.textDark),
               ),
             ),
@@ -537,9 +561,11 @@ class _MonthChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w500,
-                color: isSelected 
-                    ? Colors.white.withOpacity(0.9) 
-                    : (isDark ? AppColors.textMediumOnDark : AppColors.textMedium),
+                color: isSelected
+                    ? Colors.white.withOpacity(0.9)
+                    : (isDark
+                          ? AppColors.textMediumOnDark
+                          : AppColors.textMedium),
               ),
             ),
           ],
@@ -602,11 +628,7 @@ class _BenefitItem extends StatelessWidget {
       padding: EdgeInsets.only(bottom: AppSizes.paddingSM.h),
       child: Row(
         children: [
-          CustomIcon(
-            name: iconName,
-            size: 22,
-            color: AppColors.success,
-          ),
+          CustomIcon(name: iconName, size: 22, color: AppColors.success),
           SizedBox(width: AppSizes.paddingSM.w),
           Text(
             text,

@@ -41,12 +41,15 @@ class _CartPageState extends State<CartPage> {
     _openInstallmentSelectionPage(context, state);
   }
 
-  Future<void> _openInstallmentSelectionPage(BuildContext context, CartLoaded state) async {
+  Future<void> _openInstallmentSelectionPage(
+    BuildContext context,
+    CartLoaded state,
+  ) async {
     final totalAmount = state.items.fold<double>(
       0,
       (sum, cartItem) => sum + (cartItem.item.finalPrice * cartItem.quantity),
     );
-    
+
     final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
@@ -78,38 +81,43 @@ class _CartPageState extends State<CartPage> {
     }
   }
 
-  void _proceedWithVerificationCheck(BuildContext context, CartLoaded state, int selectedMonths) {
+  void _proceedWithVerificationCheck(
+    BuildContext context,
+    CartLoaded state,
+    int selectedMonths,
+  ) {
     final authState = context.read<AuthBloc>().state;
-    
+
     if (authState is! auth_state.AuthAuthenticated) {
       _showLoginRequiredDialog(context);
       return;
     }
 
     final user = authState.user;
-    
+
     // Check if face verified
     if (!user.isVerified) {
       _showFaceVerificationRequiredDialog(context, state, selectedMonths);
       return;
     }
-    
+
     // Check if has active limit
-    final hasActiveLimit = user.creditLimit != null && 
-                          user.limitExpiryDate != null && 
-                          user.limitExpiryDate!.isAfter(DateTime.now());
-    
+    final hasActiveLimit =
+        user.creditLimit != null &&
+        user.limitExpiryDate != null &&
+        user.limitExpiryDate!.isAfter(DateTime.now());
+
     if (!hasActiveLimit) {
       _showLimitRequiredDialog(context, state, selectedMonths);
       return;
     }
-    
+
     // Check if amount exceeds limit
     if (state.totalPrice > user.creditLimit!) {
       _showInsufficientLimitDialog(context, state.totalPrice);
       return;
     }
-    
+
     // All checks passed, proceed to contract
     _proceedToContract(context, state, selectedMonths, user.creditLimit!);
   }
@@ -119,7 +127,9 @@ class _CartPageState extends State<CartPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Tizimga kirish kerak'),
-        content: const Text('Bo\'lib to\'lashdan foydalanish uchun tizimga kirishingiz kerak.'),
+        content: const Text(
+          'Bo\'lib to\'lashdan foydalanish uchun tizimga kirishingiz kerak.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -137,9 +147,13 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  void _showLimitRequiredDialog(BuildContext context, CartLoaded state, int selectedMonths) {
+  void _showLimitRequiredDialog(
+    BuildContext context,
+    CartLoaded state,
+    int selectedMonths,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -165,19 +179,19 @@ class _CartPageState extends State<CartPage> {
             onPressed: () async {
               // Close dialog first
               Navigator.pop(dialogContext);
-              
+
               // Use widget's context for navigation
               if (!mounted) return;
-              
+
               final result = await Navigator.push<Map<String, dynamic>>(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const CreditLimitCheckPage(),
                 ),
               );
-              
+
               if (!mounted) return;
-              
+
               if (result != null) {
                 context.read<AuthBloc>().add(
                   UpdateUserProfile(
@@ -185,12 +199,12 @@ class _CartPageState extends State<CartPage> {
                     limitExpiryDate: result['expiryDate'],
                   ),
                 );
-                
+
                 // Small delay to ensure state updates
                 await Future.delayed(const Duration(milliseconds: 200));
-                
+
                 if (!mounted) return;
-                
+
                 // Retry checkout
                 _proceedWithVerificationCheck(context, state, selectedMonths);
               }
@@ -202,9 +216,13 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  void _showFaceVerificationRequiredDialog(BuildContext context, CartLoaded state, int selectedMonths) {
+  void _showFaceVerificationRequiredDialog(
+    BuildContext context,
+    CartLoaded state,
+    int selectedMonths,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -230,19 +248,19 @@ class _CartPageState extends State<CartPage> {
             onPressed: () async {
               // Close dialog first
               Navigator.pop(dialogContext);
-              
+
               // Use widget's context for navigation
               if (!mounted) return;
-              
+
               final result = await Navigator.push<Map<String, dynamic>>(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const IdentityVerificationPage(),
                 ),
               );
-              
+
               if (!mounted) return;
-              
+
               if (result != null && result['verified'] == true) {
                 context.read<AuthBloc>().add(
                   UpdateUserProfile(
@@ -250,19 +268,20 @@ class _CartPageState extends State<CartPage> {
                     name: result['name'] as String?,
                   ),
                 );
-                
+
                 // Check if user clicked continue button
                 if (result['action'] == 'continue') {
                   // Continue to limit check
-                  final limitResult = await Navigator.push<Map<String, dynamic>>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CreditLimitCheckPage(),
-                    ),
-                  );
-                  
+                  final limitResult =
+                      await Navigator.push<Map<String, dynamic>>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CreditLimitCheckPage(),
+                        ),
+                      );
+
                   if (!mounted) return;
-                  
+
                   if (limitResult != null) {
                     context.read<AuthBloc>().add(
                       UpdateUserProfile(
@@ -271,7 +290,11 @@ class _CartPageState extends State<CartPage> {
                       ),
                     );
                     // Retry checkout
-                    _proceedWithVerificationCheck(context, state, selectedMonths);
+                    _proceedWithVerificationCheck(
+                      context,
+                      state,
+                      selectedMonths,
+                    );
                   }
                 }
               }
@@ -283,7 +306,12 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  void _proceedToContract(BuildContext context, CartLoaded state, int selectedMonths, double creditLimit) {
+  void _proceedToContract(
+    BuildContext context,
+    CartLoaded state,
+    int selectedMonths,
+    double creditLimit,
+  ) {
     final interestRate = _getInterestRate(selectedMonths);
     final totalAmount = state.totalPrice * (1 + interestRate);
     final monthlyPayment = totalAmount / selectedMonths;
@@ -292,19 +320,36 @@ class _CartPageState extends State<CartPage> {
       context,
       MaterialPageRoute(
         builder: (context) => ContractPage(
+          productId: 'cart_${DateTime.now().millisecondsSinceEpoch}',
           productName: 'Savat mahsulotlari (${state.items.length} ta)',
+          productImage:
+              state.items.isNotEmpty && state.items.first.item.images.isNotEmpty
+              ? state.items.first.item.images.first
+              : '',
           productPrice: totalAmount,
           selectedMonths: selectedMonths,
           monthlyPayment: monthlyPayment,
           onAgree: () {
-            _showPinVerificationBottomSheet(context, state, totalAmount, selectedMonths, monthlyPayment);
+            _showPinVerificationBottomSheet(
+              context,
+              state,
+              totalAmount,
+              selectedMonths,
+              monthlyPayment,
+            );
           },
         ),
       ),
     );
   }
 
-  void _showPinVerificationBottomSheet(BuildContext context, CartLoaded state, double totalAmount, int selectedMonths, double monthlyPayment) {
+  void _showPinVerificationBottomSheet(
+    BuildContext context,
+    CartLoaded state,
+    double totalAmount,
+    int selectedMonths,
+    double monthlyPayment,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
@@ -316,30 +361,40 @@ class _CartPageState extends State<CartPage> {
         isDark: isDark,
         onVerified: () {
           Navigator.pop(context);
-          _showOrderSuccessDialog(context, isDark, totalAmount, selectedMonths, monthlyPayment);
+          _showOrderSuccessDialog(
+            context,
+            isDark,
+            totalAmount,
+            selectedMonths,
+            monthlyPayment,
+          );
         },
       ),
     );
   }
 
-  void _showOrderSuccessDialog(BuildContext context, bool isDark, double totalAmount, int selectedMonths, double monthlyPayment) {
+  void _showOrderSuccessDialog(
+    BuildContext context,
+    bool isDark,
+    double totalAmount,
+    int selectedMonths,
+    double monthlyPayment,
+  ) {
     // Update usedLimit
     final authState = context.read<AuthBloc>().state;
     if (authState is auth_state.AuthAuthenticated) {
       final currentUsedLimit = authState.user.usedLimit ?? 0.0;
       final newUsedLimit = currentUsedLimit + totalAmount;
-      
-      context.read<AuthBloc>().add(
-        UpdateUserProfile(usedLimit: newUsedLimit),
-      );
+
+      context.read<AuthBloc>().add(UpdateUserProfile(usedLimit: newUsedLimit));
     }
-    
+
     // Save purchase to SharedPreferences
     _savePurchase(context, totalAmount, selectedMonths, monthlyPayment);
-    
+
     // Clear cart after successful order
     context.read<CartBloc>().add(ClearCart());
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -378,7 +433,9 @@ class _CartPageState extends State<CartPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                color: isDark
+                    ? AppColors.textMediumOnDark
+                    : AppColors.textMedium,
               ),
             ),
             SizedBox(height: 8.h),
@@ -409,25 +466,30 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  Future<void> _savePurchase(BuildContext context, double totalAmount, int selectedMonths, double monthlyPayment) async {
+  Future<void> _savePurchase(
+    BuildContext context,
+    double totalAmount,
+    int selectedMonths,
+    double monthlyPayment,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     final cartState = context.read<CartBloc>().state;
-    
+
     if (cartState is! CartLoaded) return;
-    
+
     // Get existing purchases
     final purchasesJson = prefs.getString('purchases') ?? '[]';
     final List<dynamic> purchases = jsonDecode(purchasesJson);
-    
+
     // Create new purchase
     final now = DateTime.now();
     final nextPayment15th = DateTime(now.year, now.month + 1, 15);
-    
+
     final newPurchase = {
       'id': DateTime.now().millisecondsSinceEpoch.toString(),
       'productName': 'Savat mahsulotlari (${cartState.items.length} ta)',
-      'productImage': cartState.items.first.item.images.isNotEmpty 
-          ? cartState.items.first.item.images.first 
+      'productImage': cartState.items.first.item.images.isNotEmpty
+          ? cartState.items.first.item.images.first
           : 'https://via.placeholder.com/150',
       'totalPrice': totalAmount,
       'purchaseDate': DateTime.now().toIso8601String(),
@@ -442,10 +504,10 @@ class _CartPageState extends State<CartPage> {
         'nextPaymentDate': nextPayment15th.toIso8601String(),
       },
     };
-    
+
     // Add to list
     purchases.insert(0, newPurchase);
-    
+
     // Save back
     await prefs.setString('purchases', jsonEncode(purchases));
   }
@@ -454,11 +516,11 @@ class _CartPageState extends State<CartPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final authState = context.read<AuthBloc>().state;
     double? creditLimit;
-    
+
     if (authState is auth_state.AuthAuthenticated) {
       creditLimit = authState.user.creditLimit;
     }
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -494,7 +556,9 @@ class _CartPageState extends State<CartPage> {
               'Iltimos, limitingizdan kam bo\'lgan mahsulotlarni tanlang yoki limitingizni oshiring.',
               style: TextStyle(
                 fontSize: 13.sp,
-                color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                color: isDark
+                    ? AppColors.textMediumOnDark
+                    : AppColors.textMedium,
               ),
             ),
           ],
@@ -538,11 +602,12 @@ class _CartPageState extends State<CartPage> {
               return const EmptyStateWidget(
                 svgPath: 'assets/images/empty_cart.svg',
                 title: 'Savat bo\'sh',
-                message: 'Siz hali hech qanday mahsulot qo\'shmadingiz.\nKatalogdan yoqgan mahsulotlaringizni tanlang!',
+                message:
+                    'Siz hali hech qanday mahsulot qo\'shmadingiz.\nKatalogdan yoqgan mahsulotlaringizni tanlang!',
                 actionText: 'Katalogga o\'tish',
               );
             }
-            
+
             return Column(
               children: [
                 Expanded(
@@ -562,11 +627,12 @@ class _CartPageState extends State<CartPage> {
               ],
             );
           }
-          
+
           return const EmptyStateWidget(
             svgPath: 'assets/images/empty_cart.svg',
             title: 'Savat bo\'sh',
-            message: 'Siz hali hech qanday mahsulot qo\'shmadingiz.\nKatalogdan yoqgan mahsulotlaringizni tanlang!',
+            message:
+                'Siz hali hech qanday mahsulot qo\'shmadingiz.\nKatalogdan yoqgan mahsulotlaringizni tanlang!',
             actionText: 'Katalogga o\'tish',
           );
         },
@@ -579,7 +645,9 @@ class _CartPageState extends State<CartPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Savatni tozalash'),
-        content: const Text('Barcha mahsulotlarni savatdan olib tashlamoqchimisiz?'),
+        content: const Text(
+          'Barcha mahsulotlarni savatdan olib tashlamoqchimisiz?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -607,7 +675,7 @@ class _CartItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final item = cartItem.item;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Card(
       margin: EdgeInsets.only(bottom: AppSizes.paddingMD.h),
       child: Padding(
@@ -626,10 +694,7 @@ class _CartItemCard extends StatelessWidget {
                 placeholder: (context, url) => Container(
                   color: AppColors.grey.withOpacity(0.1),
                   child: const Center(
-                    child: LoadingWidget(
-                      size: 24,
-                      color: AppColors.primary,
-                    ),
+                    child: LoadingWidget(size: 24, color: AppColors.primary),
                   ),
                 ),
                 errorWidget: (context, url, error) => Container(
@@ -639,7 +704,7 @@ class _CartItemCard extends StatelessWidget {
               ),
             ),
             SizedBox(width: AppSizes.paddingMD.w),
-            
+
             // Details
             Expanded(
               child: Column(
@@ -651,7 +716,9 @@ class _CartItemCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+                      color: isDark
+                          ? AppColors.textDarkOnDark
+                          : AppColors.textDark,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -661,7 +728,9 @@ class _CartItemCard extends StatelessWidget {
                     item.category,
                     style: TextStyle(
                       fontSize: 11.sp,
-                      color: isDark ? AppColors.textLightOnDark : AppColors.textLight,
+                      color: isDark
+                          ? AppColors.textLightOnDark
+                          : AppColors.textLight,
                     ),
                   ),
                   SizedBox(height: 6.h),
@@ -687,7 +756,7 @@ class _CartItemCard extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Remove button
             IconButton(
               icon: const CustomIcon(name: 'close', size: 20),
@@ -712,15 +781,14 @@ class _QuantityControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.cardBackgroundDark : AppColors.cardBackgroundLight,
+        color: isDark
+            ? AppColors.cardBackgroundDark
+            : AppColors.cardBackgroundLight,
         borderRadius: BorderRadius.circular(AppSizes.radiusSM.r),
-        border: Border.all(
-          color: AppColors.gold.withOpacity(0.3),
-          width: 1.5,
-        ),
+        border: Border.all(color: AppColors.gold.withOpacity(0.3), width: 1.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -735,7 +803,9 @@ class _QuantityControl extends StatelessWidget {
                     context: context,
                     builder: (dialogContext) => AlertDialog(
                       title: const Text('Mahsulotni o\'chirish'),
-                      content: const Text('Mahsulotni savatdan olib tashlamoqchimisiz?'),
+                      content: const Text(
+                        'Mahsulotni savatdan olib tashlamoqchimisiz?',
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(dialogContext),
@@ -743,24 +813,31 @@ class _QuantityControl extends StatelessWidget {
                         ),
                         TextButton(
                           onPressed: () {
-                            context.read<CartBloc>().add(RemoveFromCart(cartItem.item.id));
+                            context.read<CartBloc>().add(
+                              RemoveFromCart(cartItem.item.id),
+                            );
                             Navigator.pop(dialogContext);
                           },
-                          child: const Text('Ha', style: TextStyle(color: Colors.red)),
+                          child: const Text(
+                            'Ha',
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
                       ],
                     ),
                   );
                 } else {
                   context.read<CartBloc>().add(
-                        UpdateCartItemQuantity(
-                          cartItem.item.id,
-                          cartItem.quantity - 1,
-                        ),
-                      );
+                    UpdateCartItemQuantity(
+                      cartItem.item.id,
+                      cartItem.quantity - 1,
+                    ),
+                  );
                 }
               },
-              borderRadius: BorderRadius.horizontal(left: Radius.circular(AppSizes.radiusSM.r)),
+              borderRadius: BorderRadius.horizontal(
+                left: Radius.circular(AppSizes.radiusSM.r),
+              ),
               child: Container(
                 padding: EdgeInsets.all(8.w),
                 child: CustomIcon(
@@ -771,7 +848,7 @@ class _QuantityControl extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Quantity
           Container(
             padding: EdgeInsets.symmetric(horizontal: 12.w),
@@ -792,27 +869,25 @@ class _QuantityControl extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Plus button
           Material(
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
                 context.read<CartBloc>().add(
-                      UpdateCartItemQuantity(
-                        cartItem.item.id,
-                        cartItem.quantity + 1,
-                      ),
-                    );
+                  UpdateCartItemQuantity(
+                    cartItem.item.id,
+                    cartItem.quantity + 1,
+                  ),
+                );
               },
-              borderRadius: BorderRadius.horizontal(right: Radius.circular(AppSizes.radiusSM.r)),
+              borderRadius: BorderRadius.horizontal(
+                right: Radius.circular(AppSizes.radiusSM.r),
+              ),
               child: Container(
                 padding: EdgeInsets.all(8.w),
-                child: CustomIcon(
-                  name: 'add',
-                  size: 18,
-                  color: AppColors.gold,
-                ),
+                child: CustomIcon(name: 'add', size: 18, color: AppColors.gold),
               ),
             ),
           ),
@@ -826,10 +901,7 @@ class _CartSummary extends StatelessWidget {
   final CartLoaded state;
   final Function(CartLoaded) onCheckout;
 
-  const _CartSummary({
-    required this.state,
-    required this.onCheckout,
-  });
+  const _CartSummary({required this.state, required this.onCheckout});
 
   @override
   Widget build(BuildContext context) {
@@ -858,8 +930,8 @@ class _CartSummary extends StatelessWidget {
                 Text(
                   '${state.totalItems} ta',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -869,16 +941,16 @@ class _CartSummary extends StatelessWidget {
               children: [
                 Text(
                   'Jami summa:',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
                   '${NumberFormat.currency(symbol: '', decimalDigits: 0).format(state.totalPrice)} so\'m',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
                 ),
               ],
             ),
@@ -906,4 +978,3 @@ class _CartSummary extends StatelessWidget {
 }
 
 // Extension methods removed - moved to class methods
-

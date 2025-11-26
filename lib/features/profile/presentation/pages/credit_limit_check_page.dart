@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_icon.dart';
 import '../../../../core/widgets/loading_widget.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../installment/presentation/widgets/pin_verification_bottom_sheet.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
 
 class CreditLimitCheckPage extends StatefulWidget {
   const CreditLimitCheckPage({super.key});
@@ -89,18 +93,18 @@ class _CreditLimitCheckPageState extends State<CreditLimitCheckPage> {
   Future<void> _performLimitCheck() async {
     setState(() => _isChecking = true);
 
-    // Show checking dialog
+    // Show checking dialog with timer
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
-        // Auto-close after 10 seconds and show result
-        Future.delayed(const Duration(seconds: 10), () {
+        // Auto-close after 30 seconds and show notification
+        Future.delayed(const Duration(seconds: 30), () {
           if (mounted) {
             Navigator.pop(context); // Close checking dialog
-            _showLimitResult();
+            _showLimitNotification();
           }
         });
 
@@ -127,7 +131,7 @@ class _CreditLimitCheckPageState extends State<CreditLimitCheckPage> {
               ),
               SizedBox(height: 12.h),
               Text(
-                'Iltimos kuting',
+                'Bu 30 soniya vaqt olishi mumkin',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14.sp,
@@ -143,130 +147,45 @@ class _CreditLimitCheckPageState extends State<CreditLimitCheckPage> {
     );
   }
 
-  void _showLimitResult() {
+  void _showLimitNotification() async {
     setState(() => _isChecking = false);
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    // Calculate limit: Fixed 20,000,000 so'm
-    final limit = 20000000.0; // Max 20 million
-    
-    final expiryDate = DateTime.now().add(const Duration(days: 1)); // 1 day for testing
-    
-    // Calculate time left
-    final difference = expiryDate.difference(DateTime.now());
-    final daysLeft = difference.inDays;
-    final hoursLeft = difference.inHours % 24;
-    
-    String timeLeftText;
-    if (daysLeft > 0) {
-      timeLeftText = '$daysLeft kun';
-    } else {
-      timeLeftText = '$hoursLeft soat';
+    // Get user info from auth bloc
+    final authState = context.read<AuthBloc>().state;
+    String fullName = 'Foydalanuvchi';
+
+    if (authState is AuthAuthenticated) {
+      fullName = authState.user.name ?? 'Foydalanuvchi';
     }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.r),
+    final limit = 20000000.0; // 20 million
+    final expiryDate = DateTime.now().add(const Duration(days: 365)); // 1 year
+
+    // Update user's credit limit in auth bloc
+    if (authState is AuthAuthenticated) {
+      context.read<AuthBloc>().add(
+        UpdateUserProfile(
+          name: authState.user.name,
+          isVerified: authState.user.isVerified,
+          creditLimit: limit,
+          limitExpiryDate: expiryDate,
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 80.w,
-              height: 80.h,
-              decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: CustomIcon(
-                name: 'check_circle',
-                color: AppColors.success,
-                size: 50,
-              ),
-            ),
-            SizedBox(height: 20.h),
-            Text(
-              'Limit tasdiqlandi!',
-              style: TextStyle(
-                fontSize: 22.sp,
-                fontWeight: FontWeight.w700,
-                color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
-              ),
-            ),
-            SizedBox(height: 12.h),
-            Text(
-              'Sizga berilgan limit:',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: isDark
-                    ? AppColors.textMediumOnDark
-                    : AppColors.textMedium,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              '${NumberFormat.currency(symbol: '', decimalDigits: 0).format(limit)} so\'m',
-              style: TextStyle(
-                fontSize: 28.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColors.gold,
-              ),
-            ),
-            SizedBox(height: 16.h),
-            Container(
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: AppColors.info.withOpacity(0.3)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomIcon(
-                    name: 'timer',
-                    color: AppColors.info,
-                    size: 20,
-                  ),
-                  SizedBox(width: 8.w),
-                  Flexible(
-                    child: Text(
-                      'Amal qilish muddati: $timeLeftText',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: isDark
-                            ? AppColors.textMediumOnDark
-                            : AppColors.textMedium,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context, {
-                  'limit': limit,
-                  'expiryDate': expiryDate,
-                });
-              },
-              child: const Text('Tushunarli'),
-            ),
-          ),
-        ],
-      ),
+      );
+    }
+
+    // Show local notification (works even when app is closed/background)
+    await NotificationService().showSuccessNotification(
+      title: 'Limit ajratildi! 🎉',
+      body: '$fullName, sizga 20,000,000 so\'m limit ajratildi',
     );
+
+    // Wait a bit for notification to show
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Navigate back with result
+    if (mounted) {
+      Navigator.pop(context, {'limit': limit, 'expiryDate': expiryDate});
+    }
   }
 
   @override
@@ -367,7 +286,13 @@ class _CreditLimitCheckPageState extends State<CreditLimitCheckPage> {
                     ),
                   ),
                   maxLength: 19, // 16 digits + 3 spaces
-                  buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                  buildCounter:
+                      (
+                        context, {
+                        required currentLength,
+                        required isFocused,
+                        maxLength,
+                      }) => null,
                   onChanged: _formatCardNumber,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -416,7 +341,13 @@ class _CreditLimitCheckPageState extends State<CreditLimitCheckPage> {
                     ),
                   ),
                   maxLength: 5, // MM/YY
-                  buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
+                  buildCounter:
+                      (
+                        context, {
+                        required currentLength,
+                        required isFocused,
+                        maxLength,
+                      }) => null,
                   onChanged: _formatExpiry,
                   validator: (value) {
                     if (value == null || value.isEmpty) {

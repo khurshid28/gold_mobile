@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_icon.dart';
 import '../../../installment/presentation/pages/contract_page.dart';
 import '../../../installment/presentation/widgets/pin_verification_bottom_sheet.dart';
+import '../../../verification/presentation/pages/video_verification_page.dart';
 import '../../domain/entities/store.dart';
 
 class InstallmentSelectionPage extends StatefulWidget {
@@ -18,7 +19,8 @@ class InstallmentSelectionPage extends StatefulWidget {
   });
 
   @override
-  State<InstallmentSelectionPage> createState() => _InstallmentSelectionPageState();
+  State<InstallmentSelectionPage> createState() =>
+      _InstallmentSelectionPageState();
 }
 
 class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
@@ -60,7 +62,9 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
       context,
       MaterialPageRoute(
         builder: (context) => ContractPage(
+          productId: 'store_${widget.store.id}',
           productName: productName,
+          productImage: widget.store.imageUrl,
           productPrice: totalAmount,
           selectedMonths: selectedMonths,
           monthlyPayment: monthlyPayment,
@@ -79,12 +83,25 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      isDismissible: false,
+      isDismissible: true,
+      enableDrag: true,
       builder: (context) => PinVerificationBottomSheet(
         isDark: isDark,
-        onVerified: () {
-          Navigator.pop(context);
-          _showSuccessDialog();
+        onVerified: () async {
+          Navigator.pop(context); // Close bottom sheet
+
+          // Navigate to video verification
+          final videoCompleted = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const VideoVerificationPage(),
+            ),
+          );
+
+          // Show success only if video was completed
+          if (mounted && videoCompleted == true) {
+            _showSuccessDialog();
+          }
         },
       ),
     );
@@ -132,7 +149,9 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                color: isDark
+                    ? AppColors.textMediumOnDark
+                    : AppColors.textMedium,
               ),
             ),
             SizedBox(height: 8.h),
@@ -159,7 +178,9 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                  color: isDark
+                      ? AppColors.textMediumOnDark
+                      : AppColors.textMedium,
                 ),
               ),
             ),
@@ -243,7 +264,9 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
-                            color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+                            color: isDark
+                                ? AppColors.textDarkOnDark
+                                : AppColors.textDark,
                           ),
                         ),
                       ),
@@ -254,7 +277,9 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
                     'Mahsulot: $productName',
                     style: TextStyle(
                       fontSize: 13.sp,
-                      color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                      color: isDark
+                          ? AppColors.textMediumOnDark
+                          : AppColors.textMedium,
                     ),
                   ),
                   SizedBox(height: 8.h),
@@ -303,7 +328,9 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppColors.gold.withOpacity(0.15)
-                          : (isDark ? AppColors.cardBackgroundDark : AppColors.cardBackgroundLight),
+                          : (isDark
+                                ? AppColors.cardBackgroundDark
+                                : AppColors.cardBackgroundLight),
                       borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: isSelected
@@ -321,10 +348,14 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isSelected ? AppColors.gold : AppColors.textSecondary,
+                              color: isSelected
+                                  ? AppColors.gold
+                                  : AppColors.textSecondary,
                               width: 2,
                             ),
-                            color: isSelected ? AppColors.gold : Colors.transparent,
+                            color: isSelected
+                                ? AppColors.gold
+                                : Colors.transparent,
                           ),
                           child: isSelected
                               ? Center(
@@ -355,12 +386,17 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
                                       fontWeight: FontWeight.w700,
                                       color: isSelected
                                           ? AppColors.gold
-                                          : (isDark ? AppColors.textDarkOnDark : AppColors.textDark),
+                                          : (isDark
+                                                ? AppColors.textDarkOnDark
+                                                : AppColors.textDark),
                                     ),
                                   ),
                                   SizedBox(width: 8.w),
                                   Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.w,
+                                      vertical: 2.h,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: AppColors.error.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(4.r),
@@ -381,7 +417,9 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
                                 'Oylik to\'lov:',
                                 style: TextStyle(
                                   fontSize: 11.sp,
-                                  color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                                  color: isDark
+                                      ? AppColors.textMediumOnDark
+                                      : AppColors.textMedium,
                                 ),
                               ),
                               SizedBox(height: 2.h),
@@ -390,7 +428,9 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
                                 style: TextStyle(
                                   fontSize: 15.sp,
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+                                  color: isDark
+                                      ? AppColors.textDarkOnDark
+                                      : AppColors.textDark,
                                 ),
                               ),
                               SizedBox(height: 4.h),
@@ -398,7 +438,9 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
                                 'Jami: ${formatter.format(totalAmount)} so\'m',
                                 style: TextStyle(
                                   fontSize: 11.sp,
-                                  color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                                  color: isDark
+                                      ? AppColors.textMediumOnDark
+                                      : AppColors.textMedium,
                                 ),
                               ),
                             ],
@@ -424,18 +466,16 @@ class _InstallmentSelectionPageState extends State<InstallmentSelectionPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomIcon(
-                    name: 'info',
-                    color: AppColors.info,
-                    size: 20,
-                  ),
+                  CustomIcon(name: 'info', color: AppColors.info, size: 20),
                   SizedBox(width: 12.w),
                   Expanded(
                     child: Text(
                       'Shartnoma tuzilgandan so\'ng to\'liq summa limitingizdan ayriladi. Oylik to\'lovlar bo\'yicha to\'lab borganda limit tiklanadi.',
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                        color: isDark
+                            ? AppColors.textMediumOnDark
+                            : AppColors.textMedium,
                         height: 1.4,
                       ),
                     ),

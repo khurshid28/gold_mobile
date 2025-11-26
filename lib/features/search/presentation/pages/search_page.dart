@@ -21,7 +21,6 @@ class _SearchPageState extends State<SearchPage> {
   RangeValues _priceRange = const RangeValues(0, 50000000);
   String _sortBy = 'popular'; // popular, price_asc, price_desc, newest
   List<JewelryItem> _searchResults = [];
-  bool _isSearching = false;
 
   @override
   void initState() {
@@ -72,7 +71,7 @@ class _SearchPageState extends State<SearchPage> {
         break;
       case 'popular':
       default:
-        results.sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
+        results.sort((a, b) => b.rating.compareTo(a.rating));
         break;
     }
 
@@ -110,7 +109,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -118,7 +117,9 @@ class _SearchPageState extends State<SearchPage> {
           icon: Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.cardBackgroundDark : Colors.white.withOpacity(0.9),
+              color: isDark
+                  ? AppColors.cardBackgroundDark
+                  : Colors.white.withOpacity(0.9),
               shape: BoxShape.circle,
             ),
             child: CustomIcon(
@@ -135,14 +136,21 @@ class _SearchPageState extends State<SearchPage> {
         children: [
           // Search bar
           Padding(
-            padding: EdgeInsets.all(AppSizes.paddingLG),
+            padding: EdgeInsets.symmetric(
+              horizontal: AppSizes.paddingMD.w,
+              vertical: AppSizes.paddingMD.h,
+            ),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Mahsulot qidirish...',
                 prefixIcon: Padding(
                   padding: EdgeInsets.all(12.w),
-                  child: const CustomIcon(name: 'search', size: 20, color: AppColors.gold),
+                  child: const CustomIcon(
+                    name: 'search',
+                    size: 20,
+                    color: AppColors.gold,
+                  ),
                 ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -150,6 +158,7 @@ class _SearchPageState extends State<SearchPage> {
                         onPressed: () {
                           setState(() {
                             _searchController.clear();
+                            _applyFiltersAndSort();
                           });
                         },
                       )
@@ -157,12 +166,18 @@ class _SearchPageState extends State<SearchPage> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSizes.radiusLG.r),
                   borderSide: BorderSide(
-                    color: isDark ? AppColors.borderDark : AppColors.borderLight,
+                    color: isDark
+                        ? AppColors.borderDark
+                        : AppColors.borderLight,
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppSizes.radiusLG.r),
                   borderSide: BorderSide(color: AppColors.gold, width: 2),
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: AppSizes.paddingMD.w,
+                  vertical: AppSizes.paddingMD.h,
                 ),
               ),
               onChanged: (value) {
@@ -172,7 +187,7 @@ class _SearchPageState extends State<SearchPage> {
               },
             ),
           ),
-          
+
           // Filters
           Container(
             padding: EdgeInsets.symmetric(vertical: AppSizes.paddingSM.h),
@@ -190,16 +205,19 @@ class _SearchPageState extends State<SearchPage> {
               children: [
                 // Category filters
                 SizedBox(
-                  height: 38.h,
+                  height: 40.h,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.symmetric(horizontal: AppSizes.paddingMD.w),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppSizes.paddingMD.w,
+                    ),
                     itemCount: _categories.length,
-                    separatorBuilder: (context, index) => SizedBox(width: AppSizes.paddingSM.w),
+                    separatorBuilder: (context, index) =>
+                        SizedBox(width: AppSizes.paddingSM.w),
                     itemBuilder: (context, index) {
                       final category = _categories[index];
                       final isSelected = _selectedCategory == category;
-                      
+
                       return _FilterChip(
                         label: _categoryLabels[category]!,
                         isSelected: isSelected,
@@ -215,36 +233,46 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 ),
                 SizedBox(height: AppSizes.paddingSM.h),
-                
+
                 // Sort and Price filter buttons
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppSizes.paddingLG),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppSizes.paddingMD.w,
+                  ),
                   child: Row(
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () => _showSortBottomSheet(context, isDark),
+                          onPressed: () =>
+                              _showSortBottomSheet(context, isDark),
                           icon: const CustomIcon(name: 'sort', size: 18),
                           label: Text(
                             _getSortLabel(),
                             style: TextStyle(fontSize: 13.sp),
                           ),
                           style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 12.h),
+                            padding: EdgeInsets.symmetric(
+                              vertical: AppSizes.paddingSM.h,
+                              horizontal: AppSizes.paddingSM.w,
+                            ),
                           ),
                         ),
                       ),
                       SizedBox(width: AppSizes.paddingSM.w),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () => _showPriceFilterBottomSheet(context, isDark),
+                          onPressed: () =>
+                              _showPriceFilterBottomSheet(context, isDark),
                           icon: const CustomIcon(name: 'filter', size: 18),
                           label: Text(
                             'Narx',
                             style: TextStyle(fontSize: 13.sp),
                           ),
                           style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 12.h),
+                            padding: EdgeInsets.symmetric(
+                              vertical: AppSizes.paddingSM.h,
+                              horizontal: AppSizes.paddingSM.w,
+                            ),
                           ),
                         ),
                       ),
@@ -254,7 +282,7 @@ class _SearchPageState extends State<SearchPage> {
               ],
             ),
           ),
-          
+
           // Search results
           Expanded(
             child: _searchResults.isEmpty
@@ -274,21 +302,32 @@ class _SearchPageState extends State<SearchPage> {
                           'Hech narsa topilmadi',
                           style: TextStyle(
                             fontSize: 16.sp,
+                            fontWeight: FontWeight.w500,
                             color: isDark
                                 ? AppColors.textMediumOnDark
                                 : AppColors.textMedium,
+                          ),
+                        ),
+                        SizedBox(height: AppSizes.paddingSM.h),
+                        Text(
+                          'Boshqa qidiruv so\'zi kiriting',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: isDark
+                                ? AppColors.textLightOnDark
+                                : AppColors.textLight,
                           ),
                         ),
                       ],
                     ),
                   )
                 : GridView.builder(
-                    padding: EdgeInsets.all(16.w),
+                    padding: EdgeInsets.all(AppSizes.paddingMD.w),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       childAspectRatio: 0.75,
-                      crossAxisSpacing: 16.w,
-                      mainAxisSpacing: 16.h,
+                      crossAxisSpacing: AppSizes.paddingSM.w,
+                      mainAxisSpacing: AppSizes.paddingSM.h,
                     ),
                     itemCount: _searchResults.length,
                     itemBuilder: (context, index) {
@@ -400,7 +439,7 @@ class _SearchPageState extends State<SearchPage> {
 
   void _showPriceFilterBottomSheet(BuildContext context, bool isDark) {
     RangeValues tempRange = _priceRange;
-    
+
     showModalBottomSheet(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -419,15 +458,15 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               ),
               SizedBox(height: AppSizes.paddingMD.h),
-              
+
               // Price display
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     tempRange.start == 0
-                      ? '0'
-                      : tempRange.start >= 1000000 
+                        ? '0'
+                        : tempRange.start >= 1000000
                         ? '${(tempRange.start / 1000000).toStringAsFixed(1)} mln'
                         : '${(tempRange.start / 1000).toStringAsFixed(0)} ming',
                     style: TextStyle(
@@ -438,8 +477,8 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                   Text(
                     tempRange.end >= 1000000
-                      ? '${(tempRange.end / 1000000).toStringAsFixed(1)} mln'
-                      : '${(tempRange.end / 1000).toStringAsFixed(0)} ming',
+                        ? '${(tempRange.end / 1000000).toStringAsFixed(1)} mln'
+                        : '${(tempRange.end / 1000).toStringAsFixed(0)} ming',
                     style: TextStyle(
                       fontSize: AppSizes.fontMD.sp,
                       fontWeight: FontWeight.w600,
@@ -448,7 +487,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 ],
               ),
-              
+
               // Range slider
               RangeSlider(
                 values: tempRange,
@@ -463,7 +502,7 @@ class _SearchPageState extends State<SearchPage> {
                 },
               ),
               SizedBox(height: AppSizes.paddingMD.h),
-              
+
               // Apply button
               SizedBox(
                 width: double.infinity,
@@ -476,7 +515,9 @@ class _SearchPageState extends State<SearchPage> {
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: AppSizes.paddingMD.h),
+                    padding: EdgeInsets.symmetric(
+                      vertical: AppSizes.paddingMD.h,
+                    ),
                   ),
                   child: const Text('Qo\'llash'),
                 ),
@@ -507,28 +548,31 @@ class _FilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: 12.w,
-          vertical: 6.h,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
-          color: isSelected 
-              ? AppColors.gold 
-              : (isDark ? AppColors.cardBackgroundDark : AppColors.cardBackgroundLight),
+          color: isSelected
+              ? AppColors.gold
+              : (isDark
+                    ? AppColors.cardBackgroundDark
+                    : AppColors.cardBackgroundLight),
           borderRadius: BorderRadius.circular(AppSizes.radiusFull.r),
           border: Border.all(
-            color: isSelected ? AppColors.gold : (isDark ? AppColors.borderDark : AppColors.borderLight),
+            color: isSelected
+                ? AppColors.gold
+                : (isDark ? AppColors.borderDark : AppColors.borderLight),
             width: 1.5,
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w500,
-            color: isSelected 
-                ? Colors.white 
-                : (isDark ? AppColors.textDarkOnDark : AppColors.textDark),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? AppColors.textDarkOnDark : AppColors.textDark),
+            ),
           ),
         ),
       ),
@@ -554,7 +598,7 @@ class _SortOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = value == selectedValue;
-    
+
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -578,9 +622,11 @@ class _SortOption extends StatelessWidget {
                 style: TextStyle(
                   fontSize: AppSizes.fontMD.sp,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  color: isSelected 
-                      ? AppColors.gold 
-                      : (isDark ? AppColors.textDarkOnDark : AppColors.textDark),
+                  color: isSelected
+                      ? AppColors.gold
+                      : (isDark
+                            ? AppColors.textDarkOnDark
+                            : AppColors.textDark),
                 ),
               ),
             ),

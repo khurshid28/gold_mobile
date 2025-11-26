@@ -1,12 +1,17 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/widgets/custom_icon.dart';
+import '../../../verification/presentation/pages/video_verification_page.dart';
+import '../widgets/pin_verification_bottom_sheet.dart';
 
 class ContractPage extends StatefulWidget {
+  final String productId;
   final String productName;
+  final String productImage;
   final double productPrice;
   final int selectedMonths;
   final double monthlyPayment;
@@ -14,7 +19,9 @@ class ContractPage extends StatefulWidget {
 
   const ContractPage({
     super.key,
+    required this.productId,
     required this.productName,
+    required this.productImage,
     required this.productPrice,
     required this.selectedMonths,
     required this.monthlyPayment,
@@ -52,6 +59,43 @@ class _ContractPageState extends State<ContractPage> {
     super.dispose();
   }
 
+  Future<void> _savePendingContract() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final purchasesJson = prefs.getString('purchases') ?? '[]';
+      final List<dynamic> purchasesList = jsonDecode(purchasesJson);
+
+      // Create new pending purchase
+      final newPurchase = {
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'productName': widget.productName,
+        'productImage': widget.productImage,
+        'totalPrice': widget.productPrice,
+        'purchaseDate': DateTime.now().toIso8601String(),
+        'status': 'pending', // pending status - waiting for video
+        'isInstallment': true,
+        'installmentDetails': {
+          'totalAmount': widget.productPrice,
+          'monthlyPayment': widget.monthlyPayment,
+          'totalMonths': widget.selectedMonths,
+          'paidMonths': 0,
+          'remainingAmount': widget.productPrice,
+          'nextPaymentDate': DateTime.now()
+              .add(const Duration(days: 30))
+              .toIso8601String(),
+        },
+      };
+
+      purchasesList.add(newPurchase);
+      await prefs.setString('purchases', jsonEncode(purchasesList));
+
+      // Save the purchase ID for later update
+      await prefs.setString('pending_purchase_id', newPurchase['id'] as String);
+    } catch (e) {
+      debugPrint('Error saving pending contract: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -63,7 +107,9 @@ class _ContractPageState extends State<ContractPage> {
           icon: Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.cardBackgroundDark : Colors.white.withOpacity(0.9),
+              color: isDark
+                  ? AppColors.cardBackgroundDark
+                  : Colors.white.withOpacity(0.9),
               shape: BoxShape.circle,
             ),
             child: CustomIcon(
@@ -91,60 +137,60 @@ class _ContractPageState extends State<ContractPage> {
                     'Ushbu shartnoma bo\'yicha Sotuvchi Xaridorga "${widget.productName}" mahsulotini ${NumberFormat.currency(symbol: '', decimalDigits: 0).format(widget.productPrice)} so\'m qiymatda bo\'lib to\'lash asosida sotadi.',
                     isDark,
                   ),
-                  
+
                   _buildContractSection(
                     '2. TO\'LOV SHARTLARI',
                     'Umumiy summa: ${NumberFormat.currency(symbol: '', decimalDigits: 0).format(widget.productPrice)} so\'m\n'
-                    'Muddat: ${widget.selectedMonths} oy\n'
-                    'Oylik to\'lov: ${NumberFormat.currency(symbol: '', decimalDigits: 0).format(widget.monthlyPayment)} so\'m\n'
-                    'Boshlang\'ich to\'lov: Yo\'q\n'
-                    'Foiz stavkasi: 0%',
+                        'Muddat: ${widget.selectedMonths} oy\n'
+                        'Oylik to\'lov: ${NumberFormat.currency(symbol: '', decimalDigits: 0).format(widget.monthlyPayment)} so\'m\n'
+                        'Boshlang\'ich to\'lov: Yo\'q\n'
+                        'Foiz stavkasi: 0%',
                     isDark,
                   ),
-                  
+
                   _buildContractSection(
                     '3. TOMONLARNING HUQUQ VA MAJBURIYATLARI',
                     'Sotuvchi majburiyatlari:\n'
-                    '- Mahsulotni belgilangan muddatda yetkazib berish\n'
-                    '- Mahsulot sifatiga kafolat berish\n'
-                    '- To\'lov grafikni vaqtida yuborish\n\n'
-                    'Xaridor majburiyatlari:\n'
-                    '- Oylik to\'lovlarni o\'z vaqtida amalga oshirish\n'
-                    '- Mahsulotga ehtiyotkorlik bilan munosabatda bo\'lish\n'
-                    '- Shartnoma shartlariga rioya qilish',
+                        '- Mahsulotni belgilangan muddatda yetkazib berish\n'
+                        '- Mahsulot sifatiga kafolat berish\n'
+                        '- To\'lov grafikni vaqtida yuborish\n\n'
+                        'Xaridor majburiyatlari:\n'
+                        '- Oylik to\'lovlarni o\'z vaqtida amalga oshirish\n'
+                        '- Mahsulotga ehtiyotkorlik bilan munosabatda bo\'lish\n'
+                        '- Shartnoma shartlariga rioya qilish',
                     isDark,
                   ),
-                  
+
                   _buildContractSection(
                     '4. TO\'LOVNI KECHIKTIRISH',
                     'Agar Xaridor oylik to\'lovni 5 kundan ortiq kechiktirsa, har bir kechiktirilgan kun uchun 0.1% miqdorida jarima to\'lanadi. 30 kundan ortiq kechiktirish shartnomani bekor qilish uchun asos bo\'ladi.',
                     isDark,
                   ),
-                  
+
                   _buildContractSection(
                     '5. SHARTNOMANI BEKOR QILISH',
                     'Shartnoma quyidagi hollarda bekor qilinishi mumkin:\n'
-                    '- Xaridor tomonidan to\'lovlarni 30 kundan ortiq kechiktirish\n'
-                    '- Mahsulotga qasddan zarar yetkazish\n'
-                    '- Ikki tomonning kelishuviga ko\'ra\n\n'
-                    'Shartnoma bekor qilinganda, Xaridor to\'lagan summalar qaytarilmaydi va mahsulot Sotuvchiga qaytarilishi lozim.',
+                        '- Xaridor tomonidan to\'lovlarni 30 kundan ortiq kechiktirish\n'
+                        '- Mahsulotga qasddan zarar yetkazish\n'
+                        '- Ikki tomonning kelishuviga ko\'ra\n\n'
+                        'Shartnoma bekor qilinganda, Xaridor to\'lagan summalar qaytarilmaydi va mahsulot Sotuvchiga qaytarilishi lozim.',
                     isDark,
                   ),
-                  
+
                   _buildContractSection(
                     '6. NIZOLARNI HAL QILISH',
                     'Tomonlar o\'rtasida kelib chiqadigan barcha nizolar muzokaralar yo\'li bilan hal qilinadi. Kelishuvga erishilmagan taqdirda, nizolar O\'zbekiston Respublikasi qonunchiligiga muvofiq sud tartibida hal qilinadi.',
                     isDark,
                   ),
-                  
+
                   _buildContractSection(
                     '7. YAKUNIY QOIDALAR',
                     'Ushbu shartnoma elektron shaklda imzolangan va ikki tomonning manfaatlarini himoya qiladi. Shartnoma to\'liq to\'lovlar amalga oshirilgandan so\'ng o\'z kuchini yo\'qotadi.',
                     isDark,
                   ),
-                  
+
                   SizedBox(height: 20.h),
-                  
+
                   Container(
                     padding: EdgeInsets.all(16.w),
                     decoration: BoxDecoration(
@@ -167,20 +213,22 @@ class _ContractPageState extends State<ContractPage> {
                             'Shartnomani oxirigacha o\'qib chiqing va "Roziman" tugmasini bosing',
                             style: TextStyle(
                               fontSize: 13.sp,
-                              color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                              color: isDark
+                                  ? AppColors.textMediumOnDark
+                                  : AppColors.textMedium,
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  
+
                   SizedBox(height: 100.h), // Space for bottom button
                 ],
               ),
             ),
           ),
-          
+
           // Bottom buttons
           Container(
             padding: EdgeInsets.all(16.w),
@@ -201,7 +249,10 @@ class _ContractPageState extends State<ContractPage> {
                   if (!_hasScrolledToBottom)
                     Container(
                       margin: EdgeInsets.only(bottom: 12.h),
-                      padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
+                      padding: EdgeInsets.symmetric(
+                        vertical: 8.h,
+                        horizontal: 12.w,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.warning.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8.r),
@@ -229,14 +280,13 @@ class _ContractPageState extends State<ContractPage> {
                         ],
                       ),
                     ),
-                  
+
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _hasScrolledToBottom
                           ? () {
-                              Navigator.pop(context);
-                              widget.onAgree();
+                              _showPinVerificationBottomSheet(context, isDark);
                             }
                           : null,
                       style: ElevatedButton.styleFrom(
@@ -250,6 +300,40 @@ class _ContractPageState extends State<ContractPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showPinVerificationBottomSheet(BuildContext context, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: false,
+      builder: (context) => PinVerificationBottomSheet(
+        isDark: isDark,
+        onVerified: () async {
+          // Close the bottomsheet
+          Navigator.pop(context);
+
+          // Save contract as pending
+          await _savePendingContract();
+
+          // Navigate to video verification page
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const VideoVerificationPage(),
+            ),
+          );
+
+          // If video verification was successful, close contract page and show success
+          if (result == true && mounted) {
+            Navigator.pop(context); // Close contract page
+            widget
+                .onAgree(); // This will show the success dialog in installment page
+          }
+        },
       ),
     );
   }

@@ -159,7 +159,7 @@ class _FaceVerificationPageState extends State<FaceVerificationPage>
     
     if (!mounted) return;
     
-    // Return with action result
+    // Return result to identity page
     Navigator.pop(context, {
       'verified': true,
       'name': 'Farhod Istamov',

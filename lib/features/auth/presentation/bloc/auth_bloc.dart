@@ -19,10 +19,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    
+
     // Simulate API call
     await Future.delayed(const Duration(seconds: 1));
-    
+
     // Mock: Always succeed
     emit(OtpSent(event.phoneNumber));
   }
@@ -32,27 +32,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
-    
+
     // Simulate API call
     await Future.delayed(const Duration(seconds: 1));
-    
+
     // Mock: Accept any 6-digit OTP
     if (event.otp.length == 6) {
       // Clear all previous data before logging in
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
-      
+
       final user = UserModel(
         id: const Uuid().v4(),
         phoneNumber: event.phoneNumber,
         name: 'Foydalanuvchi',
       );
-      
+
       // Save to local storage
       await prefs.setString('user_id', user.id);
       await prefs.setString('user_phone', user.phoneNumber);
       await prefs.setBool('is_logged_in', true);
-      
+      await prefs.setString(
+        'auth_token',
+        'token_${user.id}_${DateTime.now().millisecondsSinceEpoch}',
+      );
+
       emit(AuthAuthenticated(user));
     } else {
       emit(const AuthError('Noto\'g\'ri tasdiqlash kodi'));
@@ -64,10 +68,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Clear all data (including cart, favorites, purchases)
     await prefs.clear();
-    
+
     emit(AuthInitial());
   }
 
@@ -77,9 +81,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
-    
+
     print('DEBUG CheckAuthStatus: isLoggedIn=$isLoggedIn');
-    
+
     if (isLoggedIn) {
       final userId = prefs.getString('user_id') ?? '';
       final userPhone = prefs.getString('user_phone') ?? '';
@@ -88,14 +92,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final creditLimit = prefs.getDouble('creditLimit');
       final usedLimit = prefs.getDouble('usedLimit') ?? 0.0;
       final limitExpiryString = prefs.getString('limitExpiryDate');
-      
-      print('DEBUG CheckAuthStatus: userName=$userName, isVerified=$isVerified');
-      
+
+      print(
+        'DEBUG CheckAuthStatus: userName=$userName, isVerified=$isVerified',
+      );
+
       DateTime? limitExpiryDate;
       if (limitExpiryString != null) {
         limitExpiryDate = DateTime.tryParse(limitExpiryString);
       }
-      
+
       final user = UserModel(
         id: userId,
         phoneNumber: userPhone,
@@ -105,7 +111,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         usedLimit: usedLimit,
         limitExpiryDate: limitExpiryDate,
       );
-      
+
       emit(AuthAuthenticated(user));
     } else {
       emit(AuthInitial());
@@ -118,7 +124,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     if (state is AuthAuthenticated) {
       final currentUser = (state as AuthAuthenticated).user;
-      
+
       // Create updated user with explicit values
       final updatedUser = UserModel(
         id: currentUser.id,
@@ -131,7 +137,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         usedLimit: event.usedLimit ?? currentUser.usedLimit,
         limitExpiryDate: event.limitExpiryDate ?? currentUser.limitExpiryDate,
       );
-      
+
       // Save to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       if (event.name != null) {
@@ -147,10 +153,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await prefs.setDouble('usedLimit', event.usedLimit!);
       }
       if (event.limitExpiryDate != null) {
-        await prefs.setString('limitExpiryDate', event.limitExpiryDate!.toIso8601String());
+        await prefs.setString(
+          'limitExpiryDate',
+          event.limitExpiryDate!.toIso8601String(),
+        );
       }
-      
-      print('DEBUG AuthBloc: Emitting updated user - name: ${updatedUser.name}, verified: ${updatedUser.isVerified}');
+
+      print(
+        'DEBUG AuthBloc: Emitting updated user - name: ${updatedUser.name}, verified: ${updatedUser.isVerified}',
+      );
       emit(AuthAuthenticated(updatedUser));
     }
   }

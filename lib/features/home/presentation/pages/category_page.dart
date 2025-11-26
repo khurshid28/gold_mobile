@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gold_mobile/core/constants/app_colors.dart';
-import 'package:gold_mobile/core/constants/app_sizes.dart';
 import 'package:gold_mobile/core/widgets/custom_icon.dart';
 import 'package:gold_mobile/core/widgets/product_card.dart';
 import 'package:gold_mobile/features/home/domain/entities/category.dart';
@@ -12,10 +11,7 @@ import 'package:gold_mobile/core/utils/mock_data.dart';
 class CategoryPage extends StatefulWidget {
   final Category category;
 
-  const CategoryPage({
-    super.key,
-    required this.category,
-  });
+  const CategoryPage({super.key, required this.category});
 
   @override
   State<CategoryPage> createState() => _CategoryPageState();
@@ -35,7 +31,9 @@ class _CategoryPageState extends State<CategoryPage> {
     // Filter items by category
     final allItems = MockData.jewelryItems;
     setState(() {
-      _items = allItems.where((item) => item.category == widget.category.name).toList();
+      _items = allItems
+          .where((item) => item.category == widget.category.name)
+          .toList();
       _sortItems();
     });
   }
@@ -54,7 +52,7 @@ class _CategoryPageState extends State<CategoryPage> {
           break;
         case 'featured':
         default:
-          _items.sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
+          _items.sort((a, b) => b.rating.compareTo(a.rating));
           break;
       }
     });
@@ -75,10 +73,7 @@ class _CategoryPageState extends State<CategoryPage> {
             children: [
               Text(
                 'Saralash',
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w700),
               ),
               SizedBox(height: 16.h),
               _SortOption(
@@ -148,7 +143,9 @@ class _CategoryPageState extends State<CategoryPage> {
           icon: Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.cardBackgroundDark : Colors.white.withOpacity(0.9),
+              color: isDark
+                  ? AppColors.cardBackgroundDark
+                  : Colors.white.withOpacity(0.9),
               shape: BoxShape.circle,
             ),
             child: CustomIcon(
@@ -207,7 +204,9 @@ class _CategoryPageState extends State<CategoryPage> {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          color: isDark ? AppColors.cardBackgroundDark : AppColors.cardBackgroundLight,
+                          color: isDark
+                              ? AppColors.cardBackgroundDark
+                              : AppColors.cardBackgroundLight,
                           child: const Icon(
                             Icons.image_rounded,
                             color: AppColors.gold,
@@ -229,7 +228,9 @@ class _CategoryPageState extends State<CategoryPage> {
                         style: TextStyle(
                           fontSize: 20.sp,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+                          color: isDark
+                              ? AppColors.textDarkOnDark
+                              : AppColors.textDark,
                         ),
                       ),
                       SizedBox(height: 4.h),
@@ -237,7 +238,9 @@ class _CategoryPageState extends State<CategoryPage> {
                         '${_items.length} mahsulot',
                         style: TextStyle(
                           fontSize: 14.sp,
-                          color: isDark ? AppColors.textLightOnDark : AppColors.textLight,
+                          color: isDark
+                              ? AppColors.textLightOnDark
+                              : AppColors.textLight,
                         ),
                       ),
                     ],
@@ -255,7 +258,9 @@ class _CategoryPageState extends State<CategoryPage> {
               color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
               border: Border(
                 bottom: BorderSide(
-                  color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+                  color: isDark
+                      ? AppColors.dividerDark
+                      : AppColors.dividerLight,
                   width: 1,
                 ),
               ),
@@ -268,7 +273,9 @@ class _CategoryPageState extends State<CategoryPage> {
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? AppColors.textDarkOnDark : AppColors.textDark,
+                      color: isDark
+                          ? AppColors.textDarkOnDark
+                          : AppColors.textDark,
                     ),
                   ),
                 ),
@@ -276,9 +283,7 @@ class _CategoryPageState extends State<CategoryPage> {
                   onPressed: _showSortOptions,
                   icon: const Icon(Icons.sort_rounded, size: 20),
                   label: const Text('Saralash'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.gold,
-                  ),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.gold),
                 ),
               ],
             ),
@@ -294,14 +299,18 @@ class _CategoryPageState extends State<CategoryPage> {
                         Icon(
                           Icons.search_off_rounded,
                           size: 64.sp,
-                          color: isDark ? AppColors.textLightOnDark : AppColors.textLight,
+                          color: isDark
+                              ? AppColors.textLightOnDark
+                              : AppColors.textLight,
                         ),
                         SizedBox(height: 16.h),
                         Text(
                           'Mahsulot topilmadi',
                           style: TextStyle(
                             fontSize: 16.sp,
-                            color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                            color: isDark
+                                ? AppColors.textMediumOnDark
+                                : AppColors.textMedium,
                           ),
                         ),
                       ],
@@ -349,7 +358,7 @@ class _SortOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = value == groupValue;
-    
+
     return InkWell(
       onTap: () => onChanged(value),
       child: Padding(

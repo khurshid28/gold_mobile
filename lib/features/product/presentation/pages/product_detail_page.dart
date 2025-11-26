@@ -35,7 +35,8 @@ class ProductDetailPage extends StatefulWidget {
   State<ProductDetailPage> createState() => _ProductDetailPageState();
 }
 
-class _ProductDetailPageState extends State<ProductDetailPage> with SingleTickerProviderStateMixin {
+class _ProductDetailPageState extends State<ProductDetailPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -48,9 +49,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
@@ -76,13 +78,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
           SliverAppBar(
             expandedHeight: 400.h,
             pinned: true,
-            backgroundColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+            backgroundColor: isDark
+                ? AppColors.surfaceDark
+                : AppColors.surfaceLight,
             leading: IconButton(
               onPressed: () => context.pop(),
               icon: Container(
                 padding: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.cardBackgroundDark : Colors.white.withOpacity(0.9),
+                  color: isDark
+                      ? AppColors.cardBackgroundDark
+                      : Colors.white.withOpacity(0.9),
                   shape: BoxShape.circle,
                 ),
                 child: CustomIcon(
@@ -95,16 +101,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
             actions: [
               BlocBuilder<FavoritesBloc, FavoritesState>(
                 builder: (context, state) {
-                  final isFavorite = state is FavoritesLoaded && state.isFavorite(widget.item.id);
-                  
+                  final isFavorite =
+                      state is FavoritesLoaded &&
+                      state.isFavorite(widget.item.id);
+
                   return IconButton(
                     onPressed: () {
-                      context.read<FavoritesBloc>().add(ToggleFavorite(widget.item.id));
+                      context.read<FavoritesBloc>().add(
+                        ToggleFavorite(widget.item.id),
+                      );
                     },
                     icon: Container(
                       padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
-                        color: isDark ? AppColors.cardBackgroundDark : Colors.white.withOpacity(0.9),
+                        color: isDark
+                            ? AppColors.cardBackgroundDark
+                            : Colors.white.withOpacity(0.9),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -122,15 +134,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
               background: Hero(
                 tag: 'product-${widget.item.id}',
                 child: CachedNetworkImage(
-                  imageUrl: widget.item.images.isNotEmpty ? widget.item.images[0] : '',
+                  imageUrl: widget.item.images.isNotEmpty
+                      ? widget.item.images[0]
+                      : '',
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(
                     color: AppColors.surfaceLight,
                     child: const Center(
-                      child: LoadingWidget(
-                        size: 50,
-                        color: AppColors.primary,
-                      ),
+                      child: LoadingWidget(size: 50, color: AppColors.primary),
                     ),
                   ),
                 ),
@@ -144,8 +155,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                 position: _slideAnimation,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
+                    color: isDark
+                        ? AppColors.backgroundDark
+                        : AppColors.backgroundLight,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(30.r),
+                    ),
                   ),
                   child: Padding(
                     padding: EdgeInsets.all(AppSizes.paddingXL),
@@ -161,7 +176,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                                 widget.item.name,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       fontFamily: 'Playfair',
                                     ),
@@ -177,7 +195,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                                 '${NumberFormat.currency(symbol: '', decimalDigits: 0).format(widget.item.price)} so\'m',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(
                                       color: AppColors.primary,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -191,13 +210,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                               ),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(AppSizes.radiusSM.r),
+                                borderRadius: BorderRadius.circular(
+                                  AppSizes.radiusSM.r,
+                                ),
                               ),
                               child: Text(
                                 widget.item.category,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
                                       color: AppColors.primary,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -206,7 +228,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                           ],
                         ),
                         SizedBox(height: AppSizes.paddingXL.h),
-                        
+
                         // Weight
                         _DetailItem(
                           iconName: 'weight',
@@ -214,7 +236,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                           value: '${widget.item.weight}g',
                         ),
                         SizedBox(height: AppSizes.paddingLG.h),
-                        
+
                         // Purity/Material
                         _DetailItem(
                           iconName: 'diamond',
@@ -222,33 +244,37 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                           value: widget.item.material,
                         ),
                         SizedBox(height: AppSizes.paddingLG.h),
-                        
+
                         // Stock status
                         _DetailItem(
                           icon: Icons.inventory_rounded,
                           label: 'Holati',
-                          value: widget.item.inStock ? 'Omborda bor' : 'Tugagan',
-                          valueColor: widget.item.inStock ? Colors.green : Colors.red,
+                          value: widget.item.inStock
+                              ? 'Omborda bor'
+                              : 'Tugagan',
+                          valueColor: widget.item.inStock
+                              ? Colors.green
+                              : Colors.red,
                         ),
                         SizedBox(height: AppSizes.paddingXXL.h),
-                        
+
                         // Description
                         Text(
                           'Tavsif',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: AppSizes.paddingMD.h),
                         Text(
                           widget.item.description,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
                                 color: AppColors.textSecondary,
                                 height: 1.6,
                               ),
                         ),
                         SizedBox(height: AppSizes.paddingXXL.h * 1.5),
-                        
+
                         // Action Buttons
                         Row(
                           children: [
@@ -256,15 +282,25 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                               child: ElevatedButton.icon(
                                 onPressed: widget.item.inStock
                                     ? () {
-                                        _showInstallmentConfirmDialog(context, isDark);
+                                        _showInstallmentConfirmDialog(
+                                          context,
+                                          isDark,
+                                        );
                                       }
                                     : null,
-                                icon: const CustomIcon(name: 'check_circle', size: 20),
+                                icon: const CustomIcon(
+                                  name: 'check_circle',
+                                  size: 20,
+                                ),
                                 label: const Text('Bo\'lib to\'lash'),
                                 style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(vertical: AppSizes.paddingMD.h),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: AppSizes.paddingMD.h,
+                                  ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppSizes.radiusMD.r),
+                                    borderRadius: BorderRadius.circular(
+                                      AppSizes.radiusMD.r,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -275,14 +311,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                                 onPressed: widget.item.inStock
                                     ? () {
                                         context.read<CartBloc>().add(
-                                              AddToCart(
-                                                CartItem(
-                                                  item: widget.item,
-                                                  quantity: 1,
-                                                ),
-                                              ),
-                                            );
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          AddToCart(
+                                            CartItem(
+                                              item: widget.item,
+                                              quantity: 1,
+                                            ),
+                                          ),
+                                        );
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           SnackBar(
                                             content: Text('Savatga qo\'shildi'),
                                             duration: Duration(seconds: 2),
@@ -290,7 +328,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                                               label: 'Ko\'rish',
                                               onPressed: () {
                                                 // Navigate back to home and switch to cart tab
-                                                Navigator.of(context).popUntil((route) => route.isFirst);
+                                                Navigator.of(context).popUntil(
+                                                  (route) => route.isFirst,
+                                                );
                                               },
                                             ),
                                           ),
@@ -300,9 +340,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
                                 icon: const Icon(Icons.shopping_cart_rounded),
                                 label: const Text('Savatga'),
                                 style: OutlinedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(vertical: AppSizes.paddingMD.h),
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: AppSizes.paddingMD.h,
+                                  ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppSizes.radiusMD.r),
+                                    borderRadius: BorderRadius.circular(
+                                      AppSizes.radiusMD.r,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -325,43 +369,40 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
   void _showInstallmentConfirmDialog(BuildContext context, bool isDark) {
     // Check auth status
     final authState = context.read<AuthBloc>().state;
-    
+
     if (authState is! auth_state.AuthAuthenticated) {
       _showAuthRequiredDialog(context);
       return;
     }
-    
+
     final user = authState.user;
-    
+
     // Check face verification
     if (!user.isVerified) {
       _showFaceVerificationRequiredDialog(context, isDark);
       return;
     }
-    
+
     // Check credit limit
     if (user.creditLimit == null || user.limitExpiryDate == null) {
       _showLimitRequiredDialog(context, isDark);
       return;
     }
-    
+
     // Check if limit expired
     if (user.limitExpiryDate!.isBefore(DateTime.now())) {
       _showLimitExpiredDialog(context);
       return;
     }
-    
+
     // Open installment selection
     _openInstallmentSelectionPage(context);
   }
 
   Future<void> _openInstallmentSelectionPage(BuildContext context) async {
     // Create a CartItem from the current product
-    final cartItem = CartItem(
-      item: widget.item,
-      quantity: 1,
-    );
-    
+    final cartItem = CartItem(item: widget.item, quantity: 1);
+
     final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
@@ -375,7 +416,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
     if (result != null && mounted) {
       final selectedMonths = result['months'] as int;
       final authState = context.read<AuthBloc>().state;
-      
+
       if (authState is auth_state.AuthAuthenticated) {
         final availableLimit = authState.user.availableLimit;
         _proceedToContract(context, selectedMonths, availableLimit);
@@ -383,11 +424,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
     }
   }
 
-  void _proceedToContract(BuildContext context, int selectedMonths, double availableLimit) {
+  void _proceedToContract(
+    BuildContext context,
+    int selectedMonths,
+    double availableLimit,
+  ) {
     final interestRate = _getInterestRate(selectedMonths);
     final totalAmount = widget.item.finalPrice * (1 + interestRate);
     final monthlyPayment = totalAmount / selectedMonths;
-    
+
     // Check if available limit is sufficient
     if (totalAmount > availableLimit) {
       _showInsufficientLimitDialog(context, totalAmount, availableLimit);
@@ -398,12 +443,21 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
       context,
       MaterialPageRoute(
         builder: (context) => ContractPage(
+          productId: widget.item.id,
           productName: widget.item.name,
+          productImage: widget.item.images.isNotEmpty
+              ? widget.item.images.first
+              : '',
           productPrice: totalAmount,
           selectedMonths: selectedMonths,
           monthlyPayment: monthlyPayment,
           onAgree: () {
-            _showPinVerificationBottomSheet(context, totalAmount, selectedMonths, monthlyPayment);
+            _showPinVerificationBottomSheet(
+              context,
+              totalAmount,
+              selectedMonths,
+              monthlyPayment,
+            );
           },
         ),
       ),
@@ -469,7 +523,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
             Text('Shaxsni tasdiqlash'),
           ],
         ),
-        content: Text('Bo\'lib to\'lash uchun shaxsingizni tasdiqlashingiz kerak.'),
+        content: Text(
+          'Bo\'lib to\'lash uchun shaxsingizni tasdiqlashingiz kerak.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -479,19 +535,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
             onPressed: () async {
               Navigator.pop(dialogContext);
               if (!mounted) return;
-              
+
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const IdentityVerificationPage(),
                 ),
               );
-              
+
               if (result != null && mounted) {
                 context.read<AuthBloc>().add(
-                  UpdateUserProfile(
-                    isVerified: true,
-                  ),
+                  UpdateUserProfile(isVerified: true),
                 );
               }
             },
@@ -513,7 +567,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
             Text('Limit kerak'),
           ],
         ),
-        content: Text('Bo\'lib to\'lash uchun kredit limitini tekshirishingiz kerak.'),
+        content: Text(
+          'Bo\'lib to\'lash uchun kredit limitini tekshirishingiz kerak.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -523,14 +579,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
             onPressed: () async {
               Navigator.pop(dialogContext);
               if (!mounted) return;
-              
+
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const CreditLimitCheckPage(),
                 ),
               );
-              
+
               if (result != null && mounted) {
                 context.read<AuthBloc>().add(
                   UpdateUserProfile(
@@ -558,7 +614,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
             Text('Limit muddati tugagan'),
           ],
         ),
-        content: Text('Kredit limitingiz muddati tugagan. Iltimos, yangidan tekshiring.'),
+        content: Text(
+          'Kredit limitingiz muddati tugagan. Iltimos, yangidan tekshiring.',
+        ),
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
@@ -569,7 +627,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
     );
   }
 
-  void _showInsufficientLimitDialog(BuildContext context, double amount, double availableLimit) {
+  void _showInsufficientLimitDialog(
+    BuildContext context,
+    double amount,
+    double availableLimit,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -594,10 +656,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
             SizedBox(height: 12.h),
             Text(
               'Iltimos, boshqa mahsulotni tanlang yoki savatdagi mahsulotlar sonini kamaytiring.',
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: AppColors.textSecondary,
-              ),
+              style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -611,7 +670,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
     );
   }
 
-  void _showPinVerificationBottomSheet(BuildContext context, double totalAmount, int selectedMonths, double monthlyPayment) {
+  void _showPinVerificationBottomSheet(
+    BuildContext context,
+    double totalAmount,
+    int selectedMonths,
+    double monthlyPayment,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(
@@ -623,27 +687,37 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
         isDark: isDark,
         onVerified: () {
           Navigator.pop(context);
-          _showOrderSuccessDialog(context, isDark, totalAmount, selectedMonths, monthlyPayment);
+          _showOrderSuccessDialog(
+            context,
+            isDark,
+            totalAmount,
+            selectedMonths,
+            monthlyPayment,
+          );
         },
       ),
     );
   }
 
-  void _showOrderSuccessDialog(BuildContext context, bool isDark, double totalAmount, int selectedMonths, double monthlyPayment) {
+  void _showOrderSuccessDialog(
+    BuildContext context,
+    bool isDark,
+    double totalAmount,
+    int selectedMonths,
+    double monthlyPayment,
+  ) {
     // Update usedLimit
     final authState = context.read<AuthBloc>().state;
     if (authState is auth_state.AuthAuthenticated) {
       final currentUsedLimit = authState.user.usedLimit ?? 0.0;
       final newUsedLimit = currentUsedLimit + totalAmount;
-      
-      context.read<AuthBloc>().add(
-        UpdateUserProfile(usedLimit: newUsedLimit),
-      );
+
+      context.read<AuthBloc>().add(UpdateUserProfile(usedLimit: newUsedLimit));
     }
-    
+
     // Save purchase to SharedPreferences
     _savePurchase(context, totalAmount, selectedMonths, monthlyPayment);
-    
+
     // Show success dialog
     showDialog(
       context: context,
@@ -683,7 +757,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14.sp,
-                color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
+                color: isDark
+                    ? AppColors.textMediumOnDark
+                    : AppColors.textMedium,
               ),
             ),
             SizedBox(height: 8.h),
@@ -717,23 +793,30 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
     );
   }
 
-  Future<void> _savePurchase(BuildContext context, double totalAmount, int selectedMonths, double monthlyPayment) async {
+  Future<void> _savePurchase(
+    BuildContext context,
+    double totalAmount,
+    int selectedMonths,
+    double monthlyPayment,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Get existing purchases
       final purchasesJson = prefs.getString('purchases') ?? '[]';
       final List<dynamic> purchases = jsonDecode(purchasesJson);
-      
+
       // Calculate next payment date (15th of next month)
       final now = DateTime.now();
       final nextPaymentDate = DateTime(now.year, now.month + 1, 15);
-      
+
       // Create new purchase
       final newPurchase = {
         'id': DateTime.now().millisecondsSinceEpoch.toString(),
         'productName': widget.item.name,
-        'productImage': widget.item.images.isNotEmpty ? widget.item.images.first : '',
+        'productImage': widget.item.images.isNotEmpty
+            ? widget.item.images.first
+            : '',
         'purchaseDate': now.toIso8601String(),
         'totalPrice': totalAmount,
         'status': 'in_progress',
@@ -747,10 +830,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> with SingleTicker
           'nextPaymentDate': nextPaymentDate.toIso8601String(),
         },
       };
-      
+
       // Add to beginning of list
       purchases.insert(0, newPurchase);
-      
+
       // Save back to SharedPreferences
       await prefs.setString('purchases', jsonEncode(purchases));
     } catch (e) {
@@ -772,7 +855,10 @@ class _DetailItem extends StatelessWidget {
     required this.label,
     required this.value,
     this.valueColor,
-  }) : assert(icon != null || iconName != null, 'Either icon or iconName must be provided');
+  }) : assert(
+         icon != null || iconName != null,
+         'Either icon or iconName must be provided',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -784,8 +870,12 @@ class _DetailItem extends StatelessWidget {
             color: AppColors.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(AppSizes.radiusSM.r),
           ),
-          child: iconName != null 
-              ? CustomIcon(name: iconName!, color: AppColors.primary, size: 24.sp)
+          child: iconName != null
+              ? CustomIcon(
+                  name: iconName!,
+                  color: AppColors.primary,
+                  size: 24.sp,
+                )
               : Icon(icon, color: AppColors.primary, size: 24.sp),
         ),
         SizedBox(width: AppSizes.paddingMD.w),
@@ -795,16 +885,16 @@ class _DetailItem extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: AppColors.textSecondary),
               ),
               Text(
                 value,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: valueColor,
-                    ),
+                  fontWeight: FontWeight.w600,
+                  color: valueColor,
+                ),
               ),
             ],
           ),

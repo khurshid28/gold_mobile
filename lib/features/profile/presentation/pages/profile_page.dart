@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'package:gold_mobile/core/constants/app_colors.dart';
 import 'package:gold_mobile/core/constants/app_sizes.dart';
 import 'package:gold_mobile/core/l10n/app_localizations.dart';
@@ -22,6 +24,38 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  int _pendingPurchasesCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPendingPurchasesCount();
+  }
+
+  Future<void> _loadPendingPurchasesCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final purchasesJson = prefs.getStringList('my_purchases') ?? [];
+
+    print('DEBUG: Total purchases found: ${purchasesJson.length}');
+    
+    int pendingCount = 0;
+    for (final json in purchasesJson) {
+      final purchase = jsonDecode(json);
+      print('DEBUG: Purchase status: ${purchase['status']}');
+      if (purchase['status'] == 'pending') {
+        pendingCount++;
+      }
+    }
+
+    print('DEBUG: Pending count: $pendingCount');
+
+    if (mounted) {
+      setState(() {
+        _pendingPurchasesCount = pendingCount;
+      });
+    }
+  }
+
   bool _hasActiveLimit(double? creditLimit, DateTime? limitExpiryDate) {
     if (creditLimit == null || limitExpiryDate == null) return false;
     return limitExpiryDate.isAfter(DateTime.now());
@@ -39,14 +73,19 @@ class _ProfilePageState extends State<ProfilePage> {
           // Force rebuild when state changes
           print('DEBUG: AuthBloc state changed - ${state.runtimeType}');
           if (state is AuthAuthenticated) {
-            print('DEBUG: User data - name: ${state.user.name}, verified: ${state.user.isVerified}');
+            print(
+              'DEBUG: User data - name: ${state.user.name}, verified: ${state.user.isVerified}',
+            );
           }
         },
         builder: (context, state) {
           if (state is AuthAuthenticated) {
             final user = state.user;
-            final hasActiveLimit = _hasActiveLimit(user.creditLimit, user.limitExpiryDate);
-            
+            final hasActiveLimit = _hasActiveLimit(
+              user.creditLimit,
+              user.limitExpiryDate,
+            );
+
             return SingleChildScrollView(
               child: Column(
                 children: [
@@ -69,94 +108,103 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         if (!user.isVerified)
                           _VerificationCard(
-                              onTap: () async {
-                                // Identity + Face Verification
-                                final result =
-                                    await Navigator.push<Map<String, dynamic>>(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const IdentityVerificationPage(),
-                                      ),
-                                    );
-                                
-                                if (result != null &&
-                                    result['verified'] == true && mounted) {
-                                  // Mark as verified and update name immediately
-                                  print('DEBUG: Updating profile - verified: true, name: ${result['name']}');
-                                  context.read<AuthBloc>().add(
-                                    UpdateUserProfile(
-                                      isVerified: true,
-                                      name: result['name'] as String?,
+                            onTap: () async {
+                              // Identity + Face Verification
+                              final result =
+                                  await Navigator.push<Map<String, dynamic>>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const IdentityVerificationPage(),
                                     ),
                                   );
-                                  
-                                  // Small delay to ensure state updates
-                                  await Future.delayed(const Duration(milliseconds: 200));
-                                  
-                                  print('DEBUG: Action type: ${result['action']}');
-                                  
-                                  if (!mounted) return;
-                                  
-                                  // Check if user clicked "Davom etish" button
-                                  if (result['action'] == 'continue') {
-                                    // Navigate to credit limit check
-                                    final limitResult =
-                                        await Navigator.push<Map<String, dynamic>>(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const CreditLimitCheckPage(),
-                                          ),
-                                        );
-                                    if (limitResult != null && mounted) {
-                                      context.read<AuthBloc>().add(
-                                        UpdateUserProfile(
-                                          creditLimit: limitResult['limit'],
-                                          limitExpiryDate: limitResult['expiryDate'],
+
+                              if (result != null &&
+                                  result['verified'] == true &&
+                                  mounted) {
+                                // Mark as verified and update name immediately
+                                print(
+                                  'DEBUG: Updating profile - verified: true, name: ${result['name']}',
+                                );
+                                context.read<AuthBloc>().add(
+                                  UpdateUserProfile(
+                                    isVerified: true,
+                                    name: result['name'] as String?,
+                                  ),
+                                );
+
+                                // Small delay to ensure state updates
+                                await Future.delayed(
+                                  const Duration(milliseconds: 200),
+                                );
+
+                                print(
+                                  'DEBUG: Action type: ${result['action']}',
+                                );
+
+                                if (!mounted) return;
+
+                                // Check if user clicked "Davom etish" (went through video)
+                                if (result['action'] == 'continue') {
+                                  // Navigate to credit limit check
+                                  final limitResult =
+                                      await Navigator.push<
+                                        Map<String, dynamic>
+                                      >(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const CreditLimitCheckPage(),
                                         ),
                                       );
-                                    }
-                                  }
-                                  // If action == 'close', just stay on profile page
-                                }
-                              },
-                            ),
-                          if (user.isVerified && !hasActiveLimit) ...[
-                            SizedBox(height: AppSizes.paddingMD.h),
-                            _LimitCheckCard(
-                              onTap: () async {
-                                final result =
-                                    await Navigator.push<Map<String, dynamic>>(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const CreditLimitCheckPage(),
+                                  if (limitResult != null && mounted) {
+                                    context.read<AuthBloc>().add(
+                                      UpdateUserProfile(
+                                        creditLimit: limitResult['limit'],
+                                        limitExpiryDate:
+                                            limitResult['expiryDate'],
                                       ),
                                     );
-                                if (result != null && mounted) {
-                                  context.read<AuthBloc>().add(
-                                    UpdateUserProfile(
-                                      creditLimit: result['limit'],
-                                      limitExpiryDate: result['expiryDate'],
+                                  }
+                                }
+                              }
+                            },
+                          ),
+                        if (user.isVerified && !hasActiveLimit) ...[
+                          SizedBox(height: AppSizes.paddingMD.h),
+                          _LimitCheckCard(
+                            onTap: () async {
+                              final result =
+                                  await Navigator.push<Map<String, dynamic>>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const CreditLimitCheckPage(),
                                     ),
                                   );
-                                }
-                              },
-                            ),
-                          ],
-                          if (user.isVerified && hasActiveLimit) ...[
-                            SizedBox(height: AppSizes.paddingMD.h),
-                            _ActiveLimitCard(
-                              totalLimit: user.creditLimit!,
-                              usedLimit: user.usedLimit ?? 0.0,
-                              expiryDate: user.limitExpiryDate!,
-                            ),
-                          ],
-                          SizedBox(height: AppSizes.paddingLG.h),
+                              if (result != null && mounted) {
+                                context.read<AuthBloc>().add(
+                                  UpdateUserProfile(
+                                    creditLimit: result['limit'],
+                                    limitExpiryDate: result['expiryDate'],
+                                  ),
+                                );
+                              }
+                            },
+                          ),
                         ],
-                      ),
+                        if (user.isVerified && hasActiveLimit) ...[
+                          SizedBox(height: AppSizes.paddingMD.h),
+                          _ActiveLimitCard(
+                            totalLimit: user.creditLimit!,
+                            usedLimit: user.usedLimit ?? 0.0,
+                            expiryDate: user.limitExpiryDate!,
+                          ),
+                        ],
+                        SizedBox(height: AppSizes.paddingLG.h),
+                      ],
                     ),
+                  ),
 
                   // Menu Items
                   _MenuSection(
@@ -164,8 +212,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       _MenuItem(
                         iconName: 'shopping_bag',
                         title: AppLocalizations.of(context).myPurchases,
-                        onTap: () {
-                          context.push('/my-purchases');
+                        badgeCount: _pendingPurchasesCount,
+                        onTap: () async {
+                          await context.push('/my-purchases');
+                          // Reload pending count when returning
+                          _loadPendingPurchasesCount();
                         },
                       ),
                       _MenuItem(
@@ -613,7 +664,39 @@ class _MenuSection extends StatelessWidget {
                         color: AppColors.primary,
                       )
                     : Icon(item.icon, color: AppColors.primary),
-                title: Text(item.title),
+                title: Row(
+                  children: [
+                    Text(item.title),
+                    if (item.badgeCount != null && item.badgeCount! > 0) ...[
+                      SizedBox(width: 8.w),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 3.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(12.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.error.withOpacity(0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          '${item.badgeCount}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
                 trailing:
                     item.trailing ??
                     (item.onTap != null
@@ -638,6 +721,7 @@ class _MenuItem {
   final String title;
   final Widget? trailing;
   final VoidCallback? onTap;
+  final int? badgeCount;
 
   _MenuItem({
     this.icon,
@@ -645,6 +729,7 @@ class _MenuItem {
     required this.title,
     this.trailing,
     this.onTap,
+    this.badgeCount,
   }) : assert(
          icon != null || iconName != null,
          'Either icon or iconName must be provided',
@@ -683,11 +768,7 @@ class _VerificationCard extends StatelessWidget {
                 color: AppColors.info.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.face,
-                color: AppColors.info,
-                size: 24,
-              ),
+              child: Icon(Icons.face, color: AppColors.info, size: 24),
             ),
             SizedBox(width: 12.w),
             Expanded(
@@ -874,9 +955,7 @@ class _ActiveLimitCard extends StatelessWidget {
             'Mavjud / Jami: ${formatter.format(totalLimit)} so\'m',
             style: TextStyle(
               fontSize: 12.sp,
-              color: isDark
-                  ? AppColors.textMediumOnDark
-                  : AppColors.textMedium,
+              color: isDark ? AppColors.textMediumOnDark : AppColors.textMedium,
             ),
           ),
           if (usedLimit > 0) ...[
@@ -887,8 +966,8 @@ class _ActiveLimitCard extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: usedPercentage / 100,
                     backgroundColor: AppColors.textSecondary.withOpacity(0.2),
-                    color: usedPercentage > 80 
-                        ? AppColors.error 
+                    color: usedPercentage > 80
+                        ? AppColors.error
                         : AppColors.primary,
                     borderRadius: BorderRadius.circular(4.r),
                   ),

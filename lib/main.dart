@@ -9,6 +9,9 @@ import 'package:gold_mobile/core/theme/app_theme.dart';
 import 'package:gold_mobile/core/theme/theme_cubit.dart';
 import 'package:gold_mobile/core/utils/app_router.dart';
 import 'package:gold_mobile/core/l10n/app_localizations.dart';
+import 'package:gold_mobile/core/services/notification_service.dart';
+import 'package:gold_mobile/core/services/call_detection_service.dart';
+import 'package:gold_mobile/core/widgets/call_block_overlay.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:gold_mobile/features/home/presentation/bloc/home_bloc.dart';
@@ -20,6 +23,15 @@ void main() async {
 
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
+
+  // Initialize notification service
+  await NotificationService().initialize();
+
+  // Initialize call detection service
+  final hasPhonePermission = await CallDetectionService().checkPermission();
+  if (hasPhonePermission) {
+    await CallDetectionService().initialize();
+  }
 
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
@@ -34,10 +46,32 @@ void main() async {
   runApp(MyApp(prefs: prefs));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final SharedPreferences prefs;
-  
+
   const MyApp({super.key, required this.prefs});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _isCallActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _listenToCallState();
+  }
+
+  void _listenToCallState() {
+    CallDetectionService().callStateStream.listen((state) {
+      setState(() {
+        _isCallActive =
+            state == CallState.incoming || state == CallState.active;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,21 +82,13 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [
-            BlocProvider(
-              create: (context) => ThemeCubit(),
-            ),
+            BlocProvider(create: (context) => ThemeCubit()),
             BlocProvider(
               create: (context) => AuthBloc()..add(CheckAuthStatus()),
             ),
-            BlocProvider(
-              create: (context) => HomeBloc(),
-            ),
-            BlocProvider(
-              create: (context) => CartBloc(prefs),
-            ),
-            BlocProvider(
-              create: (context) => FavoritesBloc(prefs),
-            ),
+            BlocProvider(create: (context) => HomeBloc()),
+            BlocProvider(create: (context) => CartBloc(widget.prefs)),
+            BlocProvider(create: (context) => FavoritesBloc(widget.prefs)),
           ],
           child: BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, themeMode) {
@@ -85,8 +111,15 @@ class MyApp extends StatelessWidget {
                 ],
                 locale: const Locale('uz', ''), // Default til
                 builder: (context, child) {
+                  // Show call block overlay if call is active
+                  if (_isCallActive) {
+                    return const CallBlockOverlay();
+                  }
+
                   return MediaQuery(
-                    data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(textScaler: TextScaler.noScaling),
                     child: child!,
                   );
                 },
