@@ -347,11 +347,15 @@ class _MonthlyPaymentsList extends StatelessWidget {
       children: List.generate(details.totalMonths, (index) {
         final monthNumber = index + 1;
         final isPaid = monthNumber <= details.paidMonths;
+        
+        // Calculate payment date: 15th of each month starting from purchase date
+        final purchaseDate = DateTime.now(); // Should come from purchase.purchaseDate
         final paymentDate = DateTime(
-          details.nextPaymentDate.year,
-          details.nextPaymentDate.month -
-              (details.totalMonths - details.paidMonths - monthNumber),
+          purchaseDate.year,
+          purchaseDate.month + monthNumber,
+          15, // Always 15th of the month
         );
+        
         final isOverdue = !isPaid && paymentDate.isBefore(now);
 
         return Padding(
@@ -404,7 +408,7 @@ class _MonthlyPaymentsList extends StatelessWidget {
                                 color: Colors.white,
                               )
                             : Icon(
-                                Icons.access_time_rounded,
+                                Icons.schedule_rounded,
                                 size: 20.sp,
                                 color: Colors.white,
                               ),

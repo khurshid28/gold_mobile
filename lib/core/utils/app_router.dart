@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:gold_mobile/core/widgets/main_layout.dart';
+import 'package:gold_mobile/core/widgets/page_not_found_widget.dart';
 import 'package:gold_mobile/features/auth/presentation/pages/otp_verify_page.dart';
 import 'package:gold_mobile/features/auth/presentation/pages/phone_login_page.dart';
 import 'package:gold_mobile/features/splash/presentation/pages/splash_page.dart';
@@ -13,10 +14,12 @@ import 'package:gold_mobile/features/product/presentation/pages/product_detail_p
 import 'package:gold_mobile/features/home/presentation/pages/category_page.dart';
 import 'package:gold_mobile/features/home/domain/entities/jewelry_item.dart';
 import 'package:gold_mobile/features/home/domain/entities/category.dart';
+import 'package:gold_mobile/features/profile/presentation/pages/profile_page.dart';
 
 class AppRouter {
   static final router = GoRouter(
     initialLocation: '/',
+    errorBuilder: (context, state) => const PageNotFoundWidget(),
     routes: [
       GoRoute(
         path: '/',
@@ -82,6 +85,10 @@ class AppRouter {
           final category = state.extra as Category;
           return CategoryPage(category: category);
         },
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => const ProfilePage(),
       ),
     ],
   );

@@ -7,11 +7,13 @@ import '../../../../core/constants/app_sizes.dart';
 class PinVerificationBottomSheet extends StatefulWidget {
   final bool isDark;
   final VoidCallback onVerified;
+  final String? title;
 
   const PinVerificationBottomSheet({
     super.key,
     required this.isDark,
     required this.onVerified,
+    this.title,
   });
 
   @override
@@ -129,7 +131,7 @@ class _PinVerificationBottomSheetState extends State<PinVerificationBottomSheet>
             
             // Title
             Text(
-              'Tasdiqlash kodi',
+              widget.title ?? 'Tasdiqlash kodi',
               style: TextStyle(
                 fontSize: 22.sp,
                 fontWeight: FontWeight.w700,

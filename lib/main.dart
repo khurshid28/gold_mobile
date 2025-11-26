@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gold_mobile/core/constants/app_strings.dart';
 import 'package:gold_mobile/core/theme/app_theme.dart';
 import 'package:gold_mobile/core/theme/theme_cubit.dart';
@@ -12,9 +13,13 @@ import 'package:gold_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:gold_mobile/features/home/presentation/bloc/home_bloc.dart';
 import 'package:gold_mobile/features/cart/presentation/bloc/cart_bloc.dart';
+import 'package:gold_mobile/features/favorites/presentation/bloc/favorites_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
 
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
@@ -26,11 +31,13 @@ void main() async {
     ),
   );
 
-  runApp(const MyApp());
+  runApp(MyApp(prefs: prefs));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final SharedPreferences prefs;
+  
+  const MyApp({super.key, required this.prefs});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +58,10 @@ class MyApp extends StatelessWidget {
               create: (context) => HomeBloc(),
             ),
             BlocProvider(
-              create: (context) => CartBloc(),
+              create: (context) => CartBloc(prefs),
+            ),
+            BlocProvider(
+              create: (context) => FavoritesBloc(prefs),
             ),
           ],
           child: BlocBuilder<ThemeCubit, ThemeMode>(

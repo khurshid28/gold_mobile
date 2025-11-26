@@ -21,19 +21,37 @@ class PhoneLoginPage extends StatefulWidget {
   State<PhoneLoginPage> createState() => _PhoneLoginPageState();
 }
 
-class _PhoneLoginPageState extends State<PhoneLoginPage> {
+class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProviderStateMixin {
   final _phoneController = TextEditingController(text: '+998 ');
   bool _isButtonEnabled = false;
+  late AnimationController _shimmerController;
+  late Animation<double> _shimmerAnimation;
 
   @override
   void initState() {
     super.initState();
     _phoneController.addListener(_validatePhone);
+    
+    // Initialize shimmer animation
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+    
+    _shimmerAnimation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(
+        parent: _shimmerController,
+        curve: Curves.easeInOut,
+      ),
+    );
+    
+    _shimmerController.repeat();
   }
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _shimmerController.dispose();
     super.dispose();
   }
 
@@ -86,20 +104,83 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
                 Center(
                   child: Column(
                     children: [
-                      // Logo
-                      Image.asset(
-                        AppAssets.logoImage,
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.contain,
+                      // Logo with shimmer
+                      AnimatedBuilder(
+                        animation: _shimmerAnimation,
+                        builder: (context, child) {
+                          return ShaderMask(
+                            shaderCallback: (bounds) {
+                              return LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white.withOpacity(0.3),
+                                  Colors.white.withOpacity(0.8),
+                                  Colors.white.withOpacity(0.3),
+                                ],
+                                stops: [
+                                  _shimmerAnimation.value - 0.3,
+                                  _shimmerAnimation.value,
+                                  _shimmerAnimation.value + 0.3,
+                                ],
+                                tileMode: TileMode.mirror,
+                              ).createShader(bounds);
+                            },
+                            blendMode: BlendMode.srcATop,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.gold.withOpacity(0.2),
+                                    blurRadius: 20,
+                                    spreadRadius: 5,
+                                  ),
+                                ],
+                              ),
+                              child: Image.asset(
+                                AppAssets.logoImage,
+                                width: 180,
+                                height: 180,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       SizedBox(height: AppSizes.paddingLG.h),
-                      Text(
-                        AppStrings.appName,
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                              color: AppColors.primary,
-                              fontFamily: 'Playfair',
+                      // App name with shimmer
+                      AnimatedBuilder(
+                        animation: _shimmerAnimation,
+                        builder: (context, child) {
+                          return ShaderMask(
+                            shaderCallback: (bounds) {
+                              return LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppColors.gold,
+                                  const Color(0xFFFFE55C),
+                                  AppColors.gold,
+                                ],
+                                stops: [
+                                  _shimmerAnimation.value - 0.3,
+                                  _shimmerAnimation.value,
+                                  _shimmerAnimation.value + 0.3,
+                                ],
+                                tileMode: TileMode.mirror,
+                              ).createShader(bounds);
+                            },
+                            child: Text(
+                              AppStrings.appName,
+                              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                    color: Colors.white,
+                                    fontFamily: 'Playfair',
+                                    fontWeight: FontWeight.w700,
+                                  ),
                             ),
+                          );
+                        },
                       ),
                       SizedBox(height: AppSizes.paddingSM.h),
                       Text(

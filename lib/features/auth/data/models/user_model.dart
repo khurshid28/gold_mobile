@@ -7,6 +7,10 @@ class UserModel extends User {
     super.name,
     super.email,
     super.photoUrl,
+    super.isVerified,
+    super.creditLimit,
+    super.usedLimit,
+    super.limitExpiryDate,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -16,6 +20,12 @@ class UserModel extends User {
       name: json['name'] as String?,
       email: json['email'] as String?,
       photoUrl: json['photoUrl'] as String?,
+      isVerified: json['isVerified'] as bool? ?? false,
+      creditLimit: json['creditLimit'] as double?,
+      usedLimit: json['usedLimit'] as double? ?? 0.0,
+      limitExpiryDate: json['limitExpiryDate'] != null 
+          ? DateTime.tryParse(json['limitExpiryDate'] as String)
+          : null,
     );
   }
 
@@ -26,6 +36,10 @@ class UserModel extends User {
       'name': name,
       'email': email,
       'photoUrl': photoUrl,
+      'isVerified': isVerified,
+      'creditLimit': creditLimit,
+      'usedLimit': usedLimit,
+      'limitExpiryDate': limitExpiryDate?.toIso8601String(),
     };
   }
 }

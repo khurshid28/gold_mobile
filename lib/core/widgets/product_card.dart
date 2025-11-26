@@ -1,10 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gold_mobile/core/constants/app_colors.dart';
 import 'package:gold_mobile/core/constants/app_sizes.dart';
 import 'package:gold_mobile/core/widgets/shimmer_widgets.dart';
 import 'package:gold_mobile/features/home/domain/entities/jewelry_item.dart';
+import 'package:gold_mobile/features/favorites/presentation/bloc/favorites_bloc.dart';
+import 'package:gold_mobile/features/favorites/presentation/bloc/favorites_event.dart';
+import 'package:gold_mobile/features/favorites/presentation/bloc/favorites_state.dart';
 import 'package:intl/intl.dart';
 
 class ProductCard extends StatelessWidget {
@@ -99,6 +103,41 @@ class ProductCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                // Favorite Button
+                Positioned(
+                  top: AppSizes.paddingSM,
+                  left: AppSizes.paddingSM,
+                  child: BlocBuilder<FavoritesBloc, FavoritesState>(
+                    builder: (context, state) {
+                      final isFavorite = state is FavoritesLoaded && state.isFavorite(item.id);
+                      
+                      return GestureDetector(
+                        onTap: () {
+                          context.read<FavoritesBloc>().add(ToggleFavorite(item.id));
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(6.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : Colors.grey[600],
+                            size: 20.sp,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
             // Content

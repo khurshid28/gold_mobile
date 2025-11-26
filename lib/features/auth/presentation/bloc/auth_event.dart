@@ -29,3 +29,22 @@ class VerifyOtpRequested extends AuthEvent {
 class LogoutRequested extends AuthEvent {}
 
 class CheckAuthStatus extends AuthEvent {}
+
+class UpdateUserProfile extends AuthEvent {
+  final String? name;
+  final bool? isVerified;
+  final double? creditLimit;
+  final double? usedLimit;
+  final DateTime? limitExpiryDate;
+
+  const UpdateUserProfile({
+    this.name,
+    this.isVerified,
+    this.creditLimit,
+    this.usedLimit,
+    this.limitExpiryDate,
+  });
+
+  @override
+  List<Object?> get props => [name, isVerified, creditLimit, usedLimit, limitExpiryDate];
+}

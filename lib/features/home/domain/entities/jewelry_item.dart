@@ -36,6 +36,36 @@ class JewelryItem extends Equatable {
     return price;
   }
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'description': description,
+    'price': price,
+    'category': category,
+    'images': images,
+    'material': material,
+    'weight': weight,
+    'inStock': inStock,
+    'discount': discount,
+    'reviewCount': reviewCount,
+    'rating': rating,
+  };
+
+  factory JewelryItem.fromJson(Map<String, dynamic> json) => JewelryItem(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    description: json['description'] as String,
+    price: (json['price'] as num).toDouble(),
+    category: json['category'] as String,
+    images: List<String>.from(json['images'] as List),
+    material: json['material'] as String,
+    weight: (json['weight'] as num).toDouble(),
+    inStock: json['inStock'] as bool? ?? true,
+    discount: json['discount'] != null ? (json['discount'] as num).toDouble() : null,
+    reviewCount: json['reviewCount'] as int? ?? 0,
+    rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+  );
+
   @override
   List<Object?> get props => [
         id,

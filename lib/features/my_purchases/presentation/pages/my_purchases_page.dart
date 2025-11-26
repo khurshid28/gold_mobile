@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/widgets/custom_icon.dart';
@@ -16,7 +18,62 @@ class MyPurchasesPage extends StatefulWidget {
 }
 
 class _MyPurchasesPageState extends State<MyPurchasesPage> {
-  final List<Purchase> purchases = Purchase.mockPurchases;
+  List<Purchase> purchases = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPurchases();
+  }
+
+  Future<void> _loadPurchases() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final purchasesJson = prefs.getString('purchases') ?? '[]';
+      final List<dynamic> purchasesList = jsonDecode(purchasesJson);
+      
+      setState(() {
+        purchases = purchasesList.map((json) {
+          try {
+            return Purchase(
+              id: json['id'] ?? '',
+              productName: json['productName'] ?? 'Noma\'lum mahsulot',
+              productImage: json['productImage'] ?? '',
+              totalPrice: (json['totalPrice'] ?? 0).toDouble(),
+              purchaseDate: json['purchaseDate'] != null 
+                  ? DateTime.parse(json['purchaseDate']) 
+                  : DateTime.now(),
+              status: json['status'] ?? 'in_progress',
+              isInstallment: json['isInstallment'] ?? false,
+              installmentDetails: json['installmentDetails'] != null
+                  ? InstallmentDetails(
+                      totalAmount: (json['installmentDetails']['totalAmount'] ?? 0).toDouble(),
+                      monthlyPayment: (json['installmentDetails']['monthlyPayment'] ?? 0).toDouble(),
+                      totalMonths: json['installmentDetails']['totalMonths'] ?? 0,
+                      paidMonths: json['installmentDetails']['paidMonths'] ?? 0,
+                      remainingAmount: (json['installmentDetails']['remainingAmount'] ?? 0).toDouble(),
+                      nextPaymentDate: json['installmentDetails']['nextPaymentDate'] != null
+                          ? DateTime.parse(json['installmentDetails']['nextPaymentDate'])
+                          : DateTime.now(),
+                    )
+                  : null,
+            );
+          } catch (e) {
+            debugPrint('Error parsing purchase: $e');
+            return null;
+          }
+        }).whereType<Purchase>().toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading purchases: $e');
+      setState(() {
+        purchases = [];
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,15 +99,38 @@ class _MyPurchasesPageState extends State<MyPurchasesPage> {
         title: const Text('Mening haridlarim'),
         centerTitle: true,
       ),
-      body: ListView.separated(
-        padding: EdgeInsets.all(16.w),
-        itemCount: purchases.length,
-        separatorBuilder: (context, index) => SizedBox(height: 16.h),
-        itemBuilder: (context, index) {
-          final purchase = purchases[index];
-          return _PurchaseCard(purchase: purchase, isDark: isDark);
-        },
-      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : purchases.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.shopping_bag_outlined,
+                        size: 64,
+                        color: AppColors.textSecondary,
+                      ),
+                      SizedBox(height: 16.h),
+                      Text(
+                        'Hozircha haridlar yo\'q',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.separated(
+                  padding: EdgeInsets.all(16.w),
+                  itemCount: purchases.length,
+                  separatorBuilder: (context, index) => SizedBox(height: 16.h),
+                  itemBuilder: (context, index) {
+                    final purchase = purchases[index];
+                    return _PurchaseCard(purchase: purchase, isDark: isDark);
+                  },
+                ),
     );
   }
 }
