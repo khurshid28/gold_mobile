@@ -15,16 +15,23 @@ import 'package:gold_mobile/features/home/presentation/pages/category_page.dart'
 import 'package:gold_mobile/features/home/domain/entities/jewelry_item.dart';
 import 'package:gold_mobile/features/home/domain/entities/category.dart';
 import 'package:gold_mobile/features/profile/presentation/pages/profile_page.dart';
+import 'package:gold_mobile/features/wallet/domain/entities/bank_card.dart';
+import 'package:gold_mobile/features/wallet/domain/entities/wallet_transaction.dart';
+import 'package:gold_mobile/features/wallet/presentation/pages/add_card_page.dart';
+import 'package:gold_mobile/features/wallet/presentation/pages/card_otp_page.dart';
+import 'package:gold_mobile/features/wallet/presentation/pages/payments_page.dart';
+import 'package:gold_mobile/features/wallet/presentation/pages/receipt_page.dart';
+import 'package:gold_mobile/features/wallet/presentation/pages/topup_page.dart';
+import 'package:gold_mobile/features/wallet/presentation/pages/transaction_history_page.dart';
+import 'package:gold_mobile/features/wallet/presentation/pages/transfer_page.dart';
+import 'package:gold_mobile/features/wallet/presentation/pages/wallet_page.dart';
 
 class AppRouter {
   static final router = GoRouter(
     initialLocation: '/',
     errorBuilder: (context, state) => const PageNotFoundWidget(),
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const SplashPage(),
-      ),
+      GoRoute(path: '/', builder: (context, state) => const SplashPage()),
       GoRoute(
         path: '/phone-login',
         builder: (context, state) => const PhoneLoginPage(),
@@ -38,28 +45,21 @@ class AppRouter {
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => const MainLayout(),
+        builder: (context, state) {
+          final tab = state.uri.queryParameters['tab'];
+          final initial = int.tryParse(tab ?? '') ?? 0;
+          return MainLayout(initialIndex: initial);
+        },
       ),
+      GoRoute(path: '/stores', builder: (context, state) => const StoresPage()),
+      GoRoute(path: '/cart', builder: (context, state) => const CartPage()),
       GoRoute(
-        path: '/stores',
-        builder: (context, state) => const StoresPage(),
-      ),
+          path: '/favorites',
+          builder: (context, state) => const FavoritesPage()),
+      GoRoute(path: '/search', builder: (context, state) => const SearchPage()),
       GoRoute(
-        path: '/cart',
-        builder: (context, state) => const CartPage(),
-      ),
-      GoRoute(
-        path: '/favorites',
-        builder: (context, state) => const FavoritesPage(),
-      ),
-      GoRoute(
-        path: '/search',
-        builder: (context, state) => const SearchPage(),
-      ),
-      GoRoute(
-        path: '/my-purchases',
-        builder: (context, state) => const MyPurchasesPage(),
-      ),
+          path: '/my-purchases',
+          builder: (context, state) => const MyPurchasesPage()),
       GoRoute(
         path: '/product-detail',
         builder: (context, state) {
@@ -87,8 +87,53 @@ class AppRouter {
         },
       ),
       GoRoute(
-        path: '/profile',
-        builder: (context, state) => const ProfilePage(),
+          path: '/profile',
+          builder: (context, state) => const ProfilePage()),
+
+      // ----- Wallet -----
+      GoRoute(
+          path: '/wallet',
+          builder: (context, state) => const WalletPage()),
+      GoRoute(
+          path: '/wallet/history',
+          builder: (context, state) => const TransactionHistoryPage()),
+      GoRoute(
+          path: '/wallet/add-card',
+          builder: (context, state) => const AddCardPage()),
+      GoRoute(
+        path: '/wallet/add-card/otp',
+        builder: (context, state) {
+          final payload = state.extra as Map<String, dynamic>;
+          return AddCardOtpPage(payload: payload);
+        },
+      ),
+      GoRoute(
+        path: '/wallet/transfer',
+        builder: (context, state) {
+          final card = state.extra as BankCard;
+          return TransferPage(from: card);
+        },
+      ),
+      GoRoute(
+        path: '/wallet/topup',
+        builder: (context, state) {
+          final card = state.extra as BankCard;
+          return TopUpPage(card: card);
+        },
+      ),
+      GoRoute(
+        path: '/wallet/payments',
+        builder: (context, state) {
+          final card = state.extra as BankCard;
+          return PaymentsPage(card: card);
+        },
+      ),
+      GoRoute(
+        path: '/wallet/receipt',
+        builder: (context, state) {
+          final tx = state.extra as WalletTransaction;
+          return ReceiptPage(tx: tx);
+        },
       ),
     ],
   );

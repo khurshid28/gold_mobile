@@ -99,12 +99,25 @@ class _LoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return  SingleChildScrollView(
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: AppSizes.paddingSM.h),
+          // Categories title + see all
+          const SectionHeaderShimmer(),
           SizedBox(height: AppSizes.paddingMD.h),
           const CategoryShimmer(),
-          SizedBox(height: AppSizes.paddingLG.h),
+          SizedBox(height: AppSizes.paddingXL.h),
+          // Featured section
+          const SectionHeaderShimmer(),
+          SizedBox(height: AppSizes.paddingMD.h),
+          const HorizontalProductsShimmer(),
+          SizedBox(height: AppSizes.paddingXL.h),
+          // Best sellers grid
+          const SectionHeaderShimmer(),
+          SizedBox(height: AppSizes.paddingMD.h),
           const ProductGridShimmer(),
         ],
       ),

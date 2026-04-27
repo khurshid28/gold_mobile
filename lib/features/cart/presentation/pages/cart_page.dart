@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:convert';
@@ -14,6 +15,8 @@ import '../../../../core/widgets/loading_widget.dart';
 import '../bloc/cart_bloc.dart';
 import '../bloc/cart_event.dart';
 import '../bloc/cart_state.dart';
+import '../../../favorites/presentation/bloc/favorites_bloc.dart';
+import '../../../favorites/presentation/bloc/favorites_state.dart';
 import '../../../installment/presentation/pages/contract_page.dart';
 import '../../../installment/presentation/pages/installment_selection_page.dart';
 import '../../../installment/presentation/widgets/pin_verification_bottom_sheet.dart';
@@ -580,6 +583,57 @@ class _CartPageState extends State<CartPage> {
         title: const Text('Savat'),
         centerTitle: true,
         actions: [
+          // Favorites shortcut
+          BlocBuilder<FavoritesBloc, FavoritesState>(
+            builder: (context, favState) {
+              final count =
+                  favState is FavoritesLoaded ? favState.favoriteIds.length : 0;
+              return Padding(
+                padding: EdgeInsets.only(right: 4.w),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.center,
+                  children: [
+                    IconButton(
+                      tooltip: 'Sevimlilar',
+                      onPressed: () => context.push('/favorites'),
+                      icon: Icon(
+                        count > 0
+                            ? IconsaxPlusBold.heart
+                            : IconsaxPlusLinear.heart,
+                        color: count > 0 ? AppColors.error : null,
+                      ),
+                    ),
+                    if (count > 0)
+                      Positioned(
+                        right: 6,
+                        top: 6,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 5.w, vertical: 1.h),
+                          constraints: const BoxConstraints(
+                              minWidth: 16, minHeight: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.error,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Center(
+                            child: Text(
+                              count > 99 ? '99+' : '$count',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
           BlocBuilder<CartBloc, CartState>(
             builder: (context, state) {
               if (state is CartLoaded && state.items.isNotEmpty) {

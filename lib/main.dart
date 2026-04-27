@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,6 +18,8 @@ import 'package:gold_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:gold_mobile/features/home/presentation/bloc/home_bloc.dart';
 import 'package:gold_mobile/features/cart/presentation/bloc/cart_bloc.dart';
 import 'package:gold_mobile/features/favorites/presentation/bloc/favorites_bloc.dart';
+import 'package:gold_mobile/features/wallet/data/wallet_repository.dart';
+import 'package:gold_mobile/features/wallet/presentation/bloc/wallet_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,10 +30,12 @@ void main() async {
   // Initialize notification service
   await NotificationService().initialize();
 
-  // Initialize call detection service
-  final hasPhonePermission = await CallDetectionService().checkPermission();
-  if (hasPhonePermission) {
-    await CallDetectionService().initialize();
+  // Initialize call detection service (mobile only)
+  if (!kIsWeb) {
+    final hasPhonePermission = await CallDetectionService().checkPermission();
+    if (hasPhonePermission) {
+      await CallDetectionService().initialize();
+    }
   }
 
   // Set system UI overlay style
@@ -65,6 +70,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _listenToCallState() {
+    if (kIsWeb) return;
     CallDetectionService().callStateStream.listen((state) {
       setState(() {
         _isCallActive =
@@ -89,6 +95,9 @@ class _MyAppState extends State<MyApp> {
             BlocProvider(create: (context) => HomeBloc()),
             BlocProvider(create: (context) => CartBloc(widget.prefs)),
             BlocProvider(create: (context) => FavoritesBloc(widget.prefs)),
+            BlocProvider(
+              create: (context) => WalletBloc(WalletRepository(widget.prefs)),
+            ),
           ],
           child: BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, themeMode) {

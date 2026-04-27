@@ -142,3 +142,100 @@ class ProductGridShimmer extends StatelessWidget {
     );
   }
 }
+
+/// Shimmer for the [HomeWalletStrip] block on the home page.
+class WalletStripShimmer extends StatelessWidget {
+  const WalletStripShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSizes.paddingMD.w),
+          child: ShimmerWidget(
+            width: double.infinity,
+            height: 78.h,
+            borderRadius: BorderRadius.circular(18.r),
+          ),
+        ),
+        SizedBox(height: 14.h),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSizes.paddingMD.w + 6),
+          child: ShimmerWidget(
+            width: double.infinity,
+            height: 134.h,
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+        ),
+        SizedBox(height: 12.h),
+        Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(
+              3,
+              (i) => Padding(
+                padding: EdgeInsets.symmetric(horizontal: 3.w),
+                child: ShimmerWidget(
+                  width: i == 0 ? 16.w : 6.w,
+                  height: 6.h,
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Section header shimmer (title + "see all").
+class SectionHeaderShimmer extends StatelessWidget {
+  const SectionHeaderShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: AppSizes.paddingMD.w),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          ShimmerWidget(
+              width: 130.w,
+              height: 18.h,
+              borderRadius: BorderRadius.circular(4.r)),
+          ShimmerWidget(
+              width: 60.w,
+              height: 14.h,
+              borderRadius: BorderRadius.circular(4.r)),
+        ],
+      ),
+    );
+  }
+}
+
+/// Horizontal product list shimmer (used for featured / new arrivals).
+class HorizontalProductsShimmer extends StatelessWidget {
+  const HorizontalProductsShimmer({super.key, this.itemCount = 4});
+  final int itemCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 220.h,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: AppSizes.paddingMD.w),
+        itemCount: itemCount,
+        itemBuilder: (_, __) => Container(
+          width: 150.w,
+          margin: EdgeInsets.only(right: AppSizes.paddingMD.w),
+          child: const ProductCardShimmer(),
+        ),
+      ),
+    );
+  }
+}
