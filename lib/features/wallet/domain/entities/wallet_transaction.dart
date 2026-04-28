@@ -30,6 +30,10 @@ class WalletTransaction extends Equatable {
   final String? note;
   final DateTime date;
   final String? merchant; // for payments
+  final String? merchantLogo; // optional asset path (e.g. providers/uzmobile.png)
+  final String? productName; // for purchases
+  final String? productImage; // asset/url for purchase product image
+  final double? productGram; // grams for jewelry purchases
   final bool success;
 
   const WalletTransaction({
@@ -43,6 +47,10 @@ class WalletTransaction extends Equatable {
     this.toCardHolder,
     this.note,
     this.merchant,
+    this.merchantLogo,
+    this.productName,
+    this.productImage,
+    this.productGram,
     this.success = true,
   });
 
@@ -60,6 +68,10 @@ class WalletTransaction extends Equatable {
         'note': note,
         'date': date.toIso8601String(),
         'merchant': merchant,
+        'merchantLogo': merchantLogo,
+        'productName': productName,
+        'productImage': productImage,
+        'productGram': productGram,
         'success': success,
       };
 
@@ -78,6 +90,10 @@ class WalletTransaction extends Equatable {
         toCardHolder: json['toCardHolder'] as String?,
         note: json['note'] as String?,
         merchant: json['merchant'] as String?,
+        merchantLogo: json['merchantLogo'] as String?,
+        productName: json['productName'] as String?,
+        productImage: json['productImage'] as String?,
+        productGram: (json['productGram'] as num?)?.toDouble(),
         success: json['success'] as bool? ?? true,
       );
 

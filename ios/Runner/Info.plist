@@ -49,5 +49,7 @@
 	<string>Rasm yuklash uchun ruxsat kerak</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Rasm olish uchun ruxsat kerak</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Ilovaga kirish uchun Face ID dan foydalaniladi</string>
 </dict>
 </plist>

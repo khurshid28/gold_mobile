@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:gold_mobile/core/constants/app_colors.dart';
 import 'package:gold_mobile/core/constants/app_sizes.dart';
 import 'package:gold_mobile/core/l10n/app_localizations.dart';
+import 'package:gold_mobile/core/services/pin_service.dart';
 import 'package:gold_mobile/core/theme/theme_cubit.dart';
 import 'package:gold_mobile/core/widgets/custom_icon.dart';
+import 'package:gold_mobile/core/widgets/pin_setup_page.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_state.dart';
@@ -210,7 +214,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   _MenuSection(
                     items: [
                       _MenuItem(
-                        iconName: 'shopping_bag',
+                        icon: IconsaxPlusBold.shopping_bag,
                         title: AppLocalizations.of(context).myPurchases,
                         badgeCount: _pendingPurchasesCount,
                         onTap: () async {
@@ -220,7 +224,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         },
                       ),
                       _MenuItem(
-                        iconName: 'store',
+                        icon: IconsaxPlusBold.shop,
                         title: AppLocalizations.of(context).stores,
                         onTap: () {
                           context.push('/stores');
@@ -232,7 +236,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   _MenuSection(
                     items: [
                       _MenuItem(
-                        iconName: 'language',
+                        icon: IconsaxPlusBold.global,
                         title: AppLocalizations.of(context).language,
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -255,10 +259,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       _MenuItem(
                         icon: currentTheme == ThemeMode.light
-                            ? Icons.light_mode_rounded
+                            ? IconsaxPlusBold.sun_1
                             : currentTheme == ThemeMode.dark
-                            ? Icons.dark_mode_rounded
-                            : Icons.settings_suggest_rounded,
+                            ? IconsaxPlusBold.moon
+                            : IconsaxPlusBold.setting_2,
                         title: 'Mavzu',
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -284,16 +288,22 @@ class _ProfilePageState extends State<ProfilePage> {
                         },
                       ),
                       _MenuItem(
-                        iconName: 'notification',
+                        icon: IconsaxPlusBold.notification,
                         title: AppLocalizations.of(context).notifications,
                         trailing: Switch(
                           value: true,
                           onChanged: (value) {
                             // TODO: Toggle notifications
                           },
-                          activeColor: AppColors.primary,
+                          activeThumbColor: AppColors.primary,
                         ),
                         onTap: null,
+                      ),
+                      _MenuItem(
+                        icon: IconsaxPlusBold.lock_1,
+                        title: 'PIN-kod va biometrika',
+                        trailing: const _PinSwitch(),
+                        onTap: () => context.push('/profile/security'),
                       ),
                     ],
                   ),
@@ -301,14 +311,14 @@ class _ProfilePageState extends State<ProfilePage> {
                   _MenuSection(
                     items: [
                       _MenuItem(
-                        iconName: 'help',
+                        icon: IconsaxPlusBold.message_question,
                         title: AppLocalizations.of(context).help,
                         onTap: () {
                           // TODO: Navigate to help
                         },
                       ),
                       _MenuItem(
-                        iconName: 'info',
+                        icon: IconsaxPlusBold.info_circle,
                         title: AppLocalizations.of(context).about,
                         onTap: () {
                           _showAboutDialog(context);
@@ -316,64 +326,77 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSizes.paddingXL.h),
-                  // Version
-                  Text(
-                    'v1.0.0',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: AppColors.textLight),
+                  SizedBox(height: AppSizes.paddingLG.h),
+                  // Logout button (scrolls with content)
+                  Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppSizes.paddingMD.w,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _showLogoutDialog(context),
+                        icon: Icon(
+                          IconsaxPlusBold.logout,
+                          size: 20,
+                          color: AppColors.error,
+                        ),
+                        label: Text(
+                          AppLocalizations.of(context).logout,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: AppColors.error,
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(
+                            color: AppColors.error,
+                            width: 1.5,
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            vertical: AppSizes.paddingMD.h,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppSizes.radiusMD.r,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: AppSizes.paddingXL.h),
+                  SizedBox(height: AppSizes.paddingLG.h),
+                  // Version (real, dynamic)
+                  FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snap) {
+                      final isDark =
+                          Theme.of(context).brightness == Brightness.dark;
+                      final v = snap.data?.version ?? '1.0.0';
+                      final b = snap.data?.buildNumber ?? '';
+                      final label = b.isNotEmpty
+                          ? 'Gold Imperia \u2022 Versiya $v ($b)'
+                          : 'Gold Imperia \u2022 Versiya $v';
+                      return Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: isDark
+                              ? AppColors.textMediumOnDark
+                              : AppColors.textMedium,
+                        ),
+                      );
+                    },
+                  ),
+                  SizedBox(height: 100.h),
                 ],
               ),
             );
           }
           return const SizedBox();
-        },
-      ),
-      bottomNavigationBar: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          if (state is! AuthAuthenticated) return const SizedBox.shrink();
-          return Container(
-            padding: EdgeInsets.all(AppSizes.paddingMD.w),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadow,
-                  blurRadius: 8,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  _showLogoutDialog(context);
-                },
-                icon: const CustomIcon(
-                  name: 'logout',
-                  size: 20,
-                  color: AppColors.error,
-                ),
-                label: Text(
-                  AppLocalizations.of(context).logout,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.error,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.error, width: 1.5),
-                  padding: EdgeInsets.symmetric(vertical: AppSizes.paddingMD.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppSizes.radiusMD.r),
-                  ),
-                ),
-              ),
-            ),
-          );
         },
       ),
     );
@@ -657,13 +680,27 @@ class _MenuSection extends StatelessWidget {
             children: [
               if (index > 0) const Divider(height: 1),
               ListTile(
-                leading: item.iconName != null
-                    ? CustomIcon(
-                        name: item.iconName!,
-                        size: 24,
-                        color: AppColors.primary,
-                      )
-                    : Icon(item.icon, color: AppColors.primary),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 6.h,
+                ),
+                minVerticalPadding: 12.h,
+                leading: Container(
+                  width: 40.w,
+                  height: 40.w,
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  alignment: Alignment.center,
+                  child: item.iconName != null
+                      ? CustomIcon(
+                          name: item.iconName!,
+                          size: 22,
+                          color: AppColors.gold,
+                        )
+                      : Icon(item.icon, color: AppColors.gold, size: 22.sp),
+                ),
                 title: Row(
                   children: [
                     Text(item.title),
@@ -1008,6 +1045,86 @@ class _ActiveLimitCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+
+// =============================================================================
+// PIN switch (used in profile menu)
+// =============================================================================
+class _PinSwitch extends StatefulWidget {
+  const _PinSwitch();
+
+  @override
+  State<_PinSwitch> createState() => _PinSwitchState();
+}
+
+class _PinSwitchState extends State<_PinSwitch> with WidgetsBindingObserver {
+  bool _value = false;
+  bool _loaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _load();
+  }
+
+  Future<void> _load() async {
+    final v = await PinService.instance.isPinEnabled();
+    if (!mounted) return;
+    setState(() {
+      _value = v;
+      _loaded = true;
+    });
+  }
+
+  Future<void> _onChanged(bool v) async {
+    if (v) {
+      final created = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(builder: (_) => const PinSetupPage()),
+      );
+      if (created != true) return;
+      if (!mounted) return;
+      setState(() => _value = true);
+    } else {
+      await PinService.instance.setPinEnabled(false);
+      if (!mounted) return;
+      setState(() => _value = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_loaded) {
+      return SizedBox(
+        width: 40.w,
+        height: 22.h,
+        child: const Center(
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    return Switch(
+      value: _value,
+      onChanged: _onChanged,
+      activeThumbColor: AppColors.gold,
     );
   }
 }

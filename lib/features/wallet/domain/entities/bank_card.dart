@@ -32,6 +32,7 @@ class BankCard extends Equatable {
   final CardType type;
   final double balance;
   final int colorSeed; // 0..n for gradient palette
+  final bool isPrimary;
 
   const BankCard({
     required this.id,
@@ -41,6 +42,7 @@ class BankCard extends Equatable {
     required this.type,
     required this.balance,
     required this.colorSeed,
+    this.isPrimary = false,
   });
 
   String get masked {
@@ -53,7 +55,12 @@ class BankCard extends Equatable {
     return '${n.substring(0, 4)} ${n.substring(4, 8)} ${n.substring(8, 12)} ${n.substring(12, 16)}';
   }
 
-  BankCard copyWith({double? balance, String? holder, String? expiry}) {
+  BankCard copyWith({
+    double? balance,
+    String? holder,
+    String? expiry,
+    bool? isPrimary,
+  }) {
     return BankCard(
       id: id,
       holder: holder ?? this.holder,
@@ -62,6 +69,7 @@ class BankCard extends Equatable {
       type: type,
       balance: balance ?? this.balance,
       colorSeed: colorSeed,
+      isPrimary: isPrimary ?? this.isPrimary,
     );
   }
 
@@ -73,6 +81,7 @@ class BankCard extends Equatable {
         'type': type.name,
         'balance': balance,
         'colorSeed': colorSeed,
+        'isPrimary': isPrimary,
       };
 
   factory BankCard.fromJson(Map<String, dynamic> json) => BankCard(
@@ -86,8 +95,10 @@ class BankCard extends Equatable {
         ),
         balance: (json['balance'] as num).toDouble(),
         colorSeed: (json['colorSeed'] as num?)?.toInt() ?? 0,
+        isPrimary: (json['isPrimary'] as bool?) ?? false,
       );
 
   @override
-  List<Object?> get props => [id, number, expiry, balance, type, holder];
+  List<Object?> get props =>
+      [id, number, expiry, balance, type, holder, isPrimary];
 }

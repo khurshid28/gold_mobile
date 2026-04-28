@@ -85,6 +85,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is OtpSent) {
@@ -94,11 +95,25 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
           }
         },
         child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.all(AppSizes.paddingLG.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  AppSizes.paddingLG.w,
+                  AppSizes.paddingLG.h,
+                  AppSizes.paddingLG.w,
+                  AppSizes.paddingLG.h +
+                      MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight -
+                        AppSizes.paddingLG.h * 2,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                 SizedBox(height: AppSizes.paddingXXL.h),
                 // Logo and Title
                 Center(
@@ -254,6 +269,10 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> with SingleTickerProvid
                 SizedBox(height: AppSizes.paddingLG.h),
               ],
             ),
+          ),
+                ),
+              );
+            },
           ),
         ),
       ),

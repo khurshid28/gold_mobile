@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:go_router/go_router.dart';
 import 'package:gold_mobile/core/widgets/main_layout.dart';
 import 'package:gold_mobile/core/widgets/page_not_found_widget.dart';
 import 'package:gold_mobile/features/auth/presentation/pages/otp_verify_page.dart';
 import 'package:gold_mobile/features/auth/presentation/pages/phone_login_page.dart';
+import 'package:gold_mobile/features/auth/presentation/pages/security_settings_page.dart';
 import 'package:gold_mobile/features/splash/presentation/pages/splash_page.dart';
 import 'package:gold_mobile/features/stores/presentation/pages/stores_page.dart';
 import 'package:gold_mobile/features/cart/presentation/pages/cart_page.dart';
@@ -27,9 +29,16 @@ import 'package:gold_mobile/features/wallet/presentation/pages/transfer_page.dar
 import 'package:gold_mobile/features/wallet/presentation/pages/wallet_page.dart';
 
 class AppRouter {
+  /// Current top-level location, kept in sync via [router.routerDelegate].
+  static final ValueNotifier<String> currentLocation = ValueNotifier('/');
+
   static final router = GoRouter(
     initialLocation: '/',
     errorBuilder: (context, state) => const PageNotFoundWidget(),
+    redirect: (context, state) {
+      currentLocation.value = state.matchedLocation;
+      return null;
+    },
     routes: [
       GoRoute(path: '/', builder: (context, state) => const SplashPage()),
       GoRoute(
@@ -42,6 +51,15 @@ class AppRouter {
           final phoneNumber = state.extra as String;
           return OtpVerifyPage(phoneNumber: phoneNumber);
         },
+      ),
+      GoRoute(
+        path: '/security',
+        builder: (context, state) =>
+            const SecuritySettingsPage(postLogin: true),
+      ),
+      GoRoute(
+        path: '/profile/security',
+        builder: (context, state) => const SecuritySettingsPage(),
       ),
       GoRoute(
         path: '/home',
@@ -96,7 +114,10 @@ class AppRouter {
           builder: (context, state) => const WalletPage()),
       GoRoute(
           path: '/wallet/history',
-          builder: (context, state) => const TransactionHistoryPage()),
+          builder: (context, state) {
+            final cardId = state.extra as String?;
+            return TransactionHistoryPage(initialCardId: cardId);
+          }),
       GoRoute(
           path: '/wallet/add-card',
           builder: (context, state) => const AddCardPage()),

@@ -31,6 +31,13 @@ class RemoveCard extends WalletEvent {
   List<Object?> get props => [id];
 }
 
+class SetPrimaryCard extends WalletEvent {
+  final String id;
+  const SetPrimaryCard(this.id);
+  @override
+  List<Object?> get props => [id];
+}
+
 class TransferRequested extends WalletEvent {
   final BankCard from;
   final String toCardNumber;

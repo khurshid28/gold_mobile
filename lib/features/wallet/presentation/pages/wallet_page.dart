@@ -12,6 +12,7 @@ import 'package:gold_mobile/features/wallet/presentation/bloc/wallet_bloc.dart';
 import 'package:gold_mobile/features/wallet/presentation/bloc/wallet_event.dart';
 import 'package:gold_mobile/features/wallet/presentation/bloc/wallet_state.dart';
 import 'package:gold_mobile/features/wallet/presentation/widgets/bank_card_widget.dart';
+import 'package:gold_mobile/features/wallet/presentation/widgets/card_actions_sheet.dart';
 import 'package:gold_mobile/features/wallet/presentation/widgets/total_balance_card.dart';
 
 class WalletPage extends StatefulWidget {
@@ -48,12 +49,17 @@ class _WalletPageState extends State<WalletPage> {
           }
 
           final cards = state.cards;
-          final selected = cards.isNotEmpty ? cards.first : null;
+          final selected = cards.isNotEmpty
+              ? cards.firstWhere(
+                  (c) => c.isPrimary,
+                  orElse: () => cards.first,
+                )
+              : null;
 
           return RefreshIndicator(
             onRefresh: () async => context.read<WalletBloc>().add(const LoadWallet()),
             child: ListView(
-              padding: EdgeInsets.only(bottom: 24.h),
+              padding: EdgeInsets.only(bottom: 110.h),
               children: [
                 SizedBox(height: 8.h),
                 TotalBalanceCard(
@@ -63,29 +69,36 @@ class _WalletPageState extends State<WalletPage> {
                 ),
                 SizedBox(height: 14.h),
                 SizedBox(
-                  height: 134.h,
+                  height: 168.h,
                   child: PageView.builder(
                     controller: _pc,
                     itemCount: cards.length + 1,
+                    clipBehavior: Clip.none,
                     onPageChanged: (i) =>
                         setState(() => _selectedIndex = i),
                     itemBuilder: (context, index) {
                       if (index == cards.length) {
                         return Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 6.w),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 10.w, vertical: 14.h),
                           child: AddCardPlaceholder(
                             compact: true,
                             onTap: () => context.push('/wallet/add-card'),
                           ),
                         );
                       }
+                      final card = cards[index];
                       return Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 6.w),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 10.w, vertical: 14.h),
                         child: BankCardWidget(
-                          card: cards[index],
+                          card: card,
                           compact: true,
+                          height: 134.h,
                           showBalance: !_hidden,
                           hideNumber: _hidden,
+                          onTap: () =>
+                              showCardActionsSheet(context, card: card),
                         ),
                       );
                     },
@@ -123,7 +136,7 @@ class _WalletPageState extends State<WalletPage> {
                   )
                 else
                   ...state.transactions
-                      .take(6)
+                      .take(5)
                       .map((tx) => _TxTile(
                             tx: tx,
                             cards: state.cards,

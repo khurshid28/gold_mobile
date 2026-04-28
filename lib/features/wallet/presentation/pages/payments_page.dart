@@ -329,113 +329,459 @@ final _categories = <_Category>[
 // =============================================================================
 // Page 1: categories grid
 // =============================================================================
-class PaymentsPage extends StatelessWidget {
+class PaymentsPage extends StatefulWidget {
   const PaymentsPage({super.key, required this.card});
   final BankCard card;
 
   @override
+  State<PaymentsPage> createState() => _PaymentsPageState();
+}
+
+class _PaymentsPageState extends State<PaymentsPage> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  bool _matches(String value) =>
+      value.toLowerCase().contains(_query.toLowerCase());
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final card = widget.card;
+    final hasQuery = _query.trim().isNotEmpty;
+    final filteredCategories = hasQuery
+        ? _categories.where((c) {
+            if (_matches(c.name)) return true;
+            return c.providers.any((p) => _matches(p.name));
+          }).toList()
+        : _categories;
+
+    final providerMatches = hasQuery
+        ? <({_Category c, _Provider p})>[
+            for (final c in _categories)
+              for (final p in c.providers)
+                if (_matches(p.name)) (c: c, p: p),
+          ]
+        : const <({_Category c, _Provider p})>[];
+
     return Scaffold(
       appBar: AppBar(
         leading: const AppBackButton(),
         title: const Text('To\'lovlar'),
       ),
-      body: GridView.builder(
-        padding: EdgeInsets.all(16.w),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12.w,
-          mainAxisSpacing: 12.h,
-          childAspectRatio: 1.35,
-        ),
-        itemCount: _categories.length,
-        itemBuilder: (context, i) {
-          final c = _categories[i];
-          final dark = Color.lerp(c.color, Colors.black, 0.35)!;
-          return DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20.r),
-              boxShadow: [
-                BoxShadow(
-                  color: c.color.withOpacity(isDark ? 0.30 : 0.25),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 4.h),
+            child: _SearchField(
+              controller: _searchCtrl,
+              hint: 'Xizmat yoki provayder qidirish...',
+              isDark: isDark,
+              onChanged: (v) => setState(() => _query = v),
+              onClear: () {
+                _searchCtrl.clear();
+                setState(() => _query = '');
+              },
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20.r),
-              child: Material(
-                color: Colors.transparent,
-                child: Ink(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [c.color, dark],
-                    ),
-                  ),
-                  child: InkWell(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            _ProvidersPage(category: c, card: card),
-                      ),
-                    ),
-                    splashColor: Colors.white.withOpacity(0.18),
-                    highlightColor: Colors.white.withOpacity(0.08),
-                    hoverColor: Colors.white.withOpacity(0.06),
-                    child: Stack(
-                      children: [
-                        Positioned(
-                          right: -10.w,
-                          bottom: -10.h,
-                          child: Icon(
-                            c.icon,
-                            size: 90.sp,
-                            color: Colors.white.withOpacity(0.10),
+          ),
+          Expanded(
+            child: filteredCategories.isEmpty && providerMatches.isEmpty
+                ? _EmptySearch(query: _query, isDark: isDark)
+                : CustomScrollView(
+                    slivers: [
+                      if (providerMatches.isNotEmpty) ...[
+                        SliverPadding(
+                          padding: EdgeInsets.fromLTRB(
+                              16.w, 12.h, 16.w, 8.h),
+                          sliver: SliverToBoxAdapter(
+                            child: _SectionHeader(
+                              title: 'Topilgan provayderlar',
+                              count: providerMatches.length,
+                            ),
                           ),
                         ),
-                        Padding(
-                          padding: EdgeInsets.all(14.w),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                width: 38.w,
-                                height: 38.w,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.22),
-                                  borderRadius: BorderRadius.circular(12.r),
+                        SliverPadding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          sliver: SliverList.separated(
+                            itemCount: providerMatches.length,
+                            separatorBuilder: (_, __) =>
+                                SizedBox(height: 8.h),
+                            itemBuilder: (context, i) {
+                              final m = providerMatches[i];
+                              return _ProviderResultTile(
+                                provider: m.p,
+                                category: m.c,
+                                isDark: isDark,
+                                onTap: () => Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => _PayPage(
+                                      category: m.c,
+                                      provider: m.p,
+                                      card: card,
+                                    ),
+                                  ),
                                 ),
-                                child: Icon(c.icon,
-                                    color: Colors.white, size: 20.sp),
-                              ),
-                              Text(
-                                c.name,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w800,
-                                  height: 1.15,
+                              );
+                            },
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: EdgeInsets.fromLTRB(
+                              16.w, 16.h, 16.w, 8.h),
+                          sliver: SliverToBoxAdapter(
+                            child: _SectionHeader(
+                              title: 'Kategoriyalar',
+                              count: filteredCategories.length,
+                            ),
+                          ),
+                        ),
+                      ],
+                      SliverPadding(
+                        padding: EdgeInsets.fromLTRB(
+                            16.w, providerMatches.isEmpty ? 8.h : 0, 16.w, 20.h),
+                        sliver: SliverGrid.builder(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12.w,
+                            mainAxisSpacing: 12.h,
+                            childAspectRatio: 1.35,
+                          ),
+                          itemCount: filteredCategories.length,
+                          itemBuilder: (context, i) {
+                            final c = filteredCategories[i];
+                            return _CategoryTile(
+                              category: c,
+                              isDark: isDark,
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => _ProvidersPage(
+                                    category: c,
+                                    card: card,
+                                    initialQuery: _query,
+                                  ),
                                 ),
                               ),
-                            ],
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryTile extends StatelessWidget {
+  const _CategoryTile({
+    required this.category,
+    required this.isDark,
+    required this.onTap,
+  });
+  final _Category category;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = category;
+    final dark = Color.lerp(c.color, Colors.black, 0.35)!;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: c.color.withOpacity(isDark ? 0.30 : 0.25),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20.r),
+        child: Material(
+          color: Colors.transparent,
+          child: Ink(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [c.color, dark],
+              ),
+            ),
+            child: InkWell(
+              onTap: onTap,
+              splashColor: Colors.white.withOpacity(0.18),
+              highlightColor: Colors.white.withOpacity(0.08),
+              hoverColor: Colors.white.withOpacity(0.06),
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -10.w,
+                    bottom: -10.h,
+                    child: Icon(
+                      c.icon,
+                      size: 90.sp,
+                      color: Colors.white.withOpacity(0.10),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(14.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          width: 38.w,
+                          height: 38.w,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.22),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Icon(c.icon,
+                              color: Colors.white, size: 20.sp),
+                        ),
+                        Text(
+                          c.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w800,
+                            height: 1.15,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-          );
-        },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchField extends StatelessWidget {
+  const _SearchField({
+    required this.controller,
+    required this.hint,
+    required this.isDark,
+    required this.onChanged,
+    required this.onClear,
+  });
+  final TextEditingController controller;
+  final String hint;
+  final bool isDark;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.cardBackgroundDark : Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        textInputAction: TextInputAction.search,
+        style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(
+            fontSize: 13.sp,
+            color: isDark
+                ? AppColors.textMediumOnDark
+                : AppColors.textMedium,
+            fontWeight: FontWeight.w500,
+          ),
+          prefixIcon: const Icon(
+            IconsaxPlusLinear.search_normal_1,
+            color: AppColors.gold,
+          ),
+          suffixIcon: controller.text.isEmpty
+              ? null
+              : IconButton(
+                  icon: const Icon(
+                    IconsaxPlusBold.close_circle,
+                    color: AppColors.textMedium,
+                    size: 20,
+                  ),
+                  onPressed: onClear,
+                ),
+          border: InputBorder.none,
+          contentPadding:
+              EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title, required this.count});
+  final String title;
+  final int count;
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        SizedBox(width: 8.w),
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+          decoration: BoxDecoration(
+            color: AppColors.gold.withOpacity(0.14),
+            borderRadius: BorderRadius.circular(8.r),
+          ),
+          child: Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w800,
+              color: AppColors.gold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ProviderResultTile extends StatelessWidget {
+  const _ProviderResultTile({
+    required this.provider,
+    required this.category,
+    required this.isDark,
+    required this.onTap,
+  });
+  final _Provider provider;
+  final _Category category;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: isDark ? AppColors.cardBackgroundDark : Colors.white,
+      borderRadius: BorderRadius.circular(14.r),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14.r),
+        onTap: onTap,
+        child: Padding(
+          padding:
+              EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
+          child: Row(
+            children: [
+              _ProviderAvatar(provider: provider),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      provider.name,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      category.name,
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        color: isDark
+                            ? AppColors.textMediumOnDark
+                            : AppColors.textMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(IconsaxPlusLinear.arrow_right_3,
+                  color: AppColors.gold),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptySearch extends StatelessWidget {
+  const _EmptySearch({required this.query, required this.isDark});
+  final String query;
+  final bool isDark;
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 32.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(20.w),
+              decoration: BoxDecoration(
+                color: AppColors.gold.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                IconsaxPlusLinear.search_status_1,
+                color: AppColors.gold,
+                size: 40,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              'Hech narsa topilmadi',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              '«$query» so\'rovi bo\'yicha xizmat yoki provayder topilmadi',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: isDark
+                    ? AppColors.textMediumOnDark
+                    : AppColors.textMedium,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -444,66 +790,115 @@ class PaymentsPage extends StatelessWidget {
 // =============================================================================
 // Page 2: providers list inside a category
 // =============================================================================
-class _ProvidersPage extends StatelessWidget {
-  const _ProvidersPage({required this.category, required this.card});
+class _ProvidersPage extends StatefulWidget {
+  const _ProvidersPage({
+    required this.category,
+    required this.card,
+    this.initialQuery = '',
+  });
   final _Category category;
   final BankCard card;
+  final String initialQuery;
+
+  @override
+  State<_ProvidersPage> createState() => _ProvidersPageState();
+}
+
+class _ProvidersPageState extends State<_ProvidersPage> {
+  late final TextEditingController _searchCtrl =
+      TextEditingController(text: widget.initialQuery);
+  late String _query = widget.initialQuery;
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final category = widget.category;
+    final card = widget.card;
+    final q = _query.trim().toLowerCase();
+    final providers = q.isEmpty
+        ? category.providers
+        : category.providers
+            .where((p) => p.name.toLowerCase().contains(q))
+            .toList();
     return Scaffold(
       appBar: AppBar(
         leading: const AppBackButton(),
         title: Text(category.name),
       ),
-      body: ListView.separated(
-        padding: EdgeInsets.all(16.w),
-        itemCount: category.providers.length,
-        separatorBuilder: (_, __) => SizedBox(height: 10.h),
-        itemBuilder: (context, i) {
-          final p = category.providers[i];
-          return Material(
-            color: isDark
-                ? AppColors.cardBackgroundDark
-                : Colors.white,
-            borderRadius: BorderRadius.circular(14.r),
-            elevation: 0,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(14.r),
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => _PayPage(
-                    category: category,
-                    provider: p,
-                    card: card,
-                  ),
-                ));
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 4.h),
+            child: _SearchField(
+              controller: _searchCtrl,
+              hint: 'Provayder qidirish...',
+              isDark: isDark,
+              onChanged: (v) => setState(() => _query = v),
+              onClear: () {
+                _searchCtrl.clear();
+                setState(() => _query = '');
               },
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                    horizontal: 14.w, vertical: 12.h),
-                child: Row(
-                  children: [
-                    _ProviderAvatar(provider: p),
-                    SizedBox(width: 14.w),
-                    Expanded(
-                      child: Text(
-                        p.name,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    const Icon(IconsaxPlusLinear.arrow_right_3,
-                        color: AppColors.gold),
-                  ],
-                ),
-              ),
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: providers.isEmpty
+                ? _EmptySearch(query: _query, isDark: isDark)
+                : ListView.separated(
+                    padding: EdgeInsets.all(16.w),
+                    itemCount: providers.length,
+                    separatorBuilder: (_, __) => SizedBox(height: 10.h),
+                    itemBuilder: (context, i) {
+                      final p = providers[i];
+                      return Material(
+                        color: isDark
+                            ? AppColors.cardBackgroundDark
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(14.r),
+                        elevation: 0,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14.r),
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => _PayPage(
+                                category: category,
+                                provider: p,
+                                card: card,
+                              ),
+                            ));
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 14.w, vertical: 12.h),
+                            child: Row(
+                              children: [
+                                _ProviderAvatar(provider: p),
+                                SizedBox(width: 14.w),
+                                Expanded(
+                                  child: Text(
+                                    p.name,
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                const Icon(IconsaxPlusLinear.arrow_right_3,
+                                    color: AppColors.gold),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -629,6 +1024,7 @@ class _PayPageState extends State<_PayPage> {
               card: _selectedCard,
               amount: amount,
               merchant: merchant,
+              merchantLogo: widget.provider.assetPath,
               note: _accountCtrl.text.trim(),
             );
             ctx.read<WalletBloc>().add(const LoadWallet());

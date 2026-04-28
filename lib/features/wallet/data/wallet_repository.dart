@@ -50,6 +50,7 @@ class WalletRepository {
       // Demo: berilgan random balans
       balance: 50000 + _rng.nextInt(9_950_000).toDouble(),
       colorSeed: cards.length,
+      isPrimary: cards.isEmpty,
     );
     cards.add(card);
     await _saveCards(cards);
@@ -57,7 +58,33 @@ class WalletRepository {
   }
 
   Future<void> removeCard(String id) async {
-    final cards = getCards()..removeWhere((c) => c.id == id);
+    final cards = getCards();
+    final removed = cards.firstWhere(
+      (c) => c.id == id,
+      orElse: () => cards.isNotEmpty
+          ? cards.first
+          : const BankCard(
+              id: '',
+              holder: '',
+              number: '0000000000000000',
+              expiry: '',
+              type: CardType.uzcard,
+              balance: 0,
+              colorSeed: 0,
+            ),
+    );
+    cards.removeWhere((c) => c.id == id);
+    if (removed.isPrimary && cards.isNotEmpty) {
+      cards[0] = cards[0].copyWith(isPrimary: true);
+    }
+    await _saveCards(cards);
+  }
+
+  Future<void> setPrimary(String id) async {
+    final cards = getCards();
+    for (var i = 0; i < cards.length; i++) {
+      cards[i] = cards[i].copyWith(isPrimary: cards[i].id == id);
+    }
     await _saveCards(cards);
   }
 
@@ -155,6 +182,7 @@ class WalletRepository {
     required BankCard card,
     required double amount,
     required String merchant,
+    String? merchantLogo,
     String? note,
   }) async {
     if (card.balance - amount < 0) {
@@ -169,6 +197,7 @@ class WalletRepository {
       date: DateTime.now(),
       fromCardId: card.id,
       merchant: merchant,
+      merchantLogo: merchantLogo,
       note: note,
     );
     await addTransaction(tx);
@@ -177,7 +206,15 @@ class WalletRepository {
 
   /// Birinchi ishga tushganda demo kartalar
   Future<void> seedIfEmpty() async {
-    if (_prefs.getBool(_kSeeded) == true) return;
+    if (_prefs.getBool(_kSeeded) == true) {
+      // Mavjud foydalanuvchilar uchun: kamida bitta asosiy karta bo'lsin
+      final existing = getCards();
+      if (existing.isNotEmpty && !existing.any((c) => c.isPrimary)) {
+        existing[0] = existing[0].copyWith(isPrimary: true);
+        await _saveCards(existing);
+      }
+      return;
+    }
     // Migration v1 -> v2: remove demo top-up seed transactions.
     if (getCards().isNotEmpty) {
       final cleaned = getTransactions()
@@ -197,6 +234,7 @@ class WalletRepository {
       type: CardType.uzcard,
       balance: 4_580_000,
       colorSeed: 0,
+      isPrimary: true,
     );
     final demoHumo = BankCard(
       id: _uuid.v4(),
@@ -219,11 +257,27 @@ class WalletRepository {
         fromCardId: demoUz.id,
         merchant: 'Gold Imperia',
         note: 'Uzuk xaridi',
+        productName: 'Klassik tilla uzuk',
+        productImage: 'assets/images/logo.png',
+        productGram: 3.45,
+      ),
+      WalletTransaction(
+        id: _uuid.v4(),
+        type: TxType.purchase,
+        amount: 1_180_000,
+        date: now.subtract(const Duration(days: 5, hours: 2)),
+        fromCardId: demoUz.id,
+        merchant: 'Gold Imperia',
+        note: 'Bilakuzuk xaridi',
+        productName: 'Mavj naqshli bilakuzuk',
+        productImage: 'assets/images/logo.png',
+        productGram: 12.8,
       ),
       WalletTransaction(
         id: _uuid.v4(),
         type: TxType.transferOut,
         amount: 150_000,
+        fee: 1_500,
         date: now.subtract(const Duration(days: 3)),
         fromCardId: demoHumo.id,
         toCardNumber: '8600 5544 3322 1100',

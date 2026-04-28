@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:iconsax_plus/iconsax_plus.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +22,14 @@ class MyPurchasesPage extends StatefulWidget {
 class _MyPurchasesPageState extends State<MyPurchasesPage> {
   List<Purchase> purchases = [];
   bool isLoading = true;
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -245,6 +254,19 @@ class _MyPurchasesPageState extends State<MyPurchasesPage> {
             )
           : Column(
               children: [
+                // Search bar
+                Padding(
+                  padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 4.h),
+                  child: _PurchaseSearchField(
+                    controller: _searchCtrl,
+                    isDark: isDark,
+                    onChanged: (v) => setState(() => _query = v),
+                    onClear: () {
+                      _searchCtrl.clear();
+                      setState(() => _query = '');
+                    },
+                  ),
+                ),
                 // Pending purchases alert banner
                 if (purchases.any((p) => p.status == 'pending'))
                   _PendingAlertBanner(
@@ -267,27 +289,143 @@ class _MyPurchasesPageState extends State<MyPurchasesPage> {
                     },
                   ),
 
-                // Purchases list
+                // Purchases list (filtered)
                 Expanded(
-                  child: ListView.separated(
-                    padding: EdgeInsets.all(16.w),
-                    itemCount: purchases.length,
-                    separatorBuilder: (context, index) =>
-                        SizedBox(height: 16.h),
-                    itemBuilder: (context, index) {
-                      final purchase = purchases[index];
-                      return _PurchaseCard(
-                        purchase: purchase,
-                        isDark: isDark,
-                        onTap: purchase.status == 'pending'
-                            ? () => _showContinueDialog(context, purchase)
-                            : null,
+                  child: Builder(builder: (context) {
+                    final q = _query.trim().toLowerCase();
+                    final filtered = q.isEmpty
+                        ? purchases
+                        : purchases
+                            .where((p) =>
+                                p.productName.toLowerCase().contains(q))
+                            .toList();
+                    if (filtered.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32.w),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(20.w),
+                                decoration: BoxDecoration(
+                                  color: AppColors.gold.withOpacity(0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  IconsaxPlusLinear.search_status_1,
+                                  color: AppColors.gold,
+                                  size: 40,
+                                ),
+                              ),
+                              SizedBox(height: 16.h),
+                              Text(
+                                'Topilmadi',
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              SizedBox(height: 6.h),
+                              Text(
+                                '«$_query» bo\'yicha xarid topilmadi',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 13.sp,
+                                  color: isDark
+                                      ? AppColors.textMediumOnDark
+                                      : AppColors.textMedium,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       );
-                    },
-                  ),
+                    }
+                    return ListView.separated(
+                      padding: EdgeInsets.all(16.w),
+                      itemCount: filtered.length,
+                      separatorBuilder: (context, index) =>
+                          SizedBox(height: 16.h),
+                      itemBuilder: (context, index) {
+                        final purchase = filtered[index];
+                        return _PurchaseCard(
+                          purchase: purchase,
+                          isDark: isDark,
+                          onTap: purchase.status == 'pending'
+                              ? () =>
+                                  _showContinueDialog(context, purchase)
+                              : null,
+                        );
+                      },
+                    );
+                  }),
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _PurchaseSearchField extends StatelessWidget {
+  const _PurchaseSearchField({
+    required this.controller,
+    required this.isDark,
+    required this.onChanged,
+    required this.onClear,
+  });
+  final TextEditingController controller;
+  final bool isDark;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.cardBackgroundDark : Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        textInputAction: TextInputAction.search,
+        style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
+        decoration: InputDecoration(
+          hintText: 'Mahsulot bo\'yicha qidirish...',
+          hintStyle: TextStyle(
+            fontSize: 13.sp,
+            color: isDark
+                ? AppColors.textMediumOnDark
+                : AppColors.textMedium,
+            fontWeight: FontWeight.w500,
+          ),
+          prefixIcon: const Icon(
+            IconsaxPlusLinear.search_normal_1,
+            color: AppColors.gold,
+          ),
+          suffixIcon: controller.text.isEmpty
+              ? null
+              : IconButton(
+                  icon: const Icon(
+                    IconsaxPlusBold.close_circle,
+                    color: AppColors.textMedium,
+                    size: 20,
+                  ),
+                  onPressed: onClear,
+                ),
+          border: InputBorder.none,
+          contentPadding:
+              EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+        ),
+      ),
     );
   }
 }

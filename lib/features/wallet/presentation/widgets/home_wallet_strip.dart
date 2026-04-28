@@ -8,6 +8,7 @@ import 'package:gold_mobile/core/widgets/main_layout.dart';
 import 'package:gold_mobile/features/wallet/presentation/bloc/wallet_bloc.dart';
 import 'package:gold_mobile/features/wallet/presentation/bloc/wallet_state.dart';
 import 'package:gold_mobile/features/wallet/presentation/widgets/bank_card_widget.dart';
+import 'package:gold_mobile/features/wallet/presentation/widgets/card_actions_sheet.dart';
 import 'package:gold_mobile/features/wallet/presentation/widgets/total_balance_card.dart';
 
 /// Balance card + horizontal cards slider (PageView + dots) used at the top
@@ -47,29 +48,35 @@ class _HomeWalletStripState extends State<HomeWalletStrip> {
             ),
             SizedBox(height: 14.h),
             SizedBox(
-              height: 134.h,
+              height: 168.h,
               child: PageView.builder(
                 controller: _pc,
                 itemCount: itemCount,
+                clipBehavior: Clip.none,
                 onPageChanged: (i) => setState(() => _selectedIndex = i),
                 itemBuilder: (context, index) {
                   if (index == cards.length) {
                     return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 10.w, vertical: 14.h),
                       child: AddCardPlaceholder(
                         compact: true,
                         onTap: () => context.push('/wallet/add-card'),
                       ),
                     );
                   }
+                  final card = cards[index];
                   return Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6.w),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 10.w, vertical: 14.h),
                     child: BankCardWidget(
-                      card: cards[index],
+                      card: card,
                       compact: true,
+                      height: 134.h,
                       showBalance: !_hidden,
                       hideNumber: _hidden,
-                      onTap: () => MainLayout.of(context)?.switchToTab(1),
+                      onTap: () =>
+                          showCardActionsSheet(context, card: card),
                     ),
                   );
                 },

@@ -11,6 +11,7 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
     on<LoadWallet>(_onLoad);
     on<AddCardSubmitted>(_onAdd);
     on<RemoveCard>(_onRemove);
+    on<SetPrimaryCard>(_onSetPrimary);
     on<TransferRequested>(_onTransfer);
     on<TopUpRequested>(_onTopUp);
     on<PaymentRequested>(_onPayment);
@@ -47,6 +48,12 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
 
   Future<void> _onRemove(RemoveCard event, Emitter<WalletState> emit) async {
     await repo.removeCard(event.id);
+    emit(state.copyWith(cards: repo.getCards()));
+  }
+
+  Future<void> _onSetPrimary(
+      SetPrimaryCard event, Emitter<WalletState> emit) async {
+    await repo.setPrimary(event.id);
     emit(state.copyWith(cards: repo.getCards()));
   }
 

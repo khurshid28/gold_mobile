@@ -13,6 +13,7 @@ import 'package:gold_mobile/core/l10n/app_localizations.dart';
 import 'package:gold_mobile/core/services/notification_service.dart';
 import 'package:gold_mobile/core/services/call_detection_service.dart';
 import 'package:gold_mobile/core/widgets/call_block_overlay.dart';
+import 'package:gold_mobile/core/widgets/inactivity_lock_gate.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:gold_mobile/features/auth/presentation/bloc/auth_event.dart';
 import 'package:gold_mobile/features/home/presentation/bloc/home_bloc.dart';
@@ -129,7 +130,10 @@ class _MyAppState extends State<MyApp> {
                     data: MediaQuery.of(
                       context,
                     ).copyWith(textScaler: TextScaler.noScaling),
-                    child: child!,
+                    child: InactivityLockGate(
+                      currentRoute: AppRouter.currentLocation,
+                      child: child!,
+                    ),
                   );
                 },
               );

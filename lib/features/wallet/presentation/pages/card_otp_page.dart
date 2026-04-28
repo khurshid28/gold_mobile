@@ -36,7 +36,7 @@ class WalletOtpPage extends StatefulWidget {
 class _WalletOtpPageState extends State<WalletOtpPage> {
   final _ctrl = TextEditingController();
   bool _busy = false;
-  int _seconds = 60;
+  int _seconds = 120;
   Timer? _timer;
 
   @override
@@ -56,7 +56,7 @@ class _WalletOtpPageState extends State<WalletOtpPage> {
   }
 
   void _startTimer() {
-    _seconds = 60;
+    _seconds = 120;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
@@ -109,81 +109,116 @@ class _WalletOtpPageState extends State<WalletOtpPage> {
       ),
     );
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         leading: const AppBackButton(),
         title: Text(widget.title),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(20.w),
-        child: Column(
-          children: [
-            SizedBox(height: 16.h),
-            Container(
-              padding: EdgeInsets.all(18.w),
-              decoration: BoxDecoration(
-                color: AppColors.gold.withOpacity(0.12),
-                shape: BoxShape.circle,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            20.w,
+            20.h,
+            20.w,
+            20.h + MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Column(
+            children: [
+              SizedBox(height: 16.h),
+              Container(
+                padding: EdgeInsets.all(18.w),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child:
+                    const Icon(IconsaxPlusBold.sms, color: AppColors.gold, size: 40),
               ),
-              child:
-                  const Icon(IconsaxPlusBold.sms, color: AppColors.gold, size: 40),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              'Tasdiqlash kodi',
-              style: TextStyle(
-                fontSize: 20.sp,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              widget.subtitle,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13.sp,
-                color: isDark
-                    ? AppColors.textMediumOnDark
-                    : AppColors.textMedium,
-              ),
-            ),
-            SizedBox(height: 24.h),
-            Pinput(
-              length: 6,
-              controller: _ctrl,
-              defaultPinTheme: defaultPin,
-              focusedPinTheme: defaultPin.copyWith(
-                decoration: defaultPin.decoration!.copyWith(
-                  border: Border.all(color: AppColors.gold, width: 2),
+              SizedBox(height: 16.h),
+              Text(
+                'Tasdiqlash kodi',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              onCompleted: _verify,
-            ),
-            SizedBox(height: 24.h),
-            if (_busy)
-              const CircularProgressIndicator(color: AppColors.gold)
-            else if (_seconds > 0)
+              SizedBox(height: 8.h),
               Text(
-                'Qayta yuborish: 00:${_seconds.toString().padLeft(2, '0')}',
+                widget.subtitle,
+                textAlign: TextAlign.center,
                 style: TextStyle(
+                  fontSize: 13.sp,
                   color: isDark
                       ? AppColors.textMediumOnDark
                       : AppColors.textMedium,
-                  fontSize: 13.sp,
                 ),
-              )
-            else
-              TextButton(
-                onPressed: () {
-                  _startTimer();
-                  Fluttertoast.showToast(
-                    msg: 'SMS qayta yuborildi (demo: ${widget.expectedCode})',
-                    backgroundColor: AppColors.gold,
-                    textColor: Colors.black,
-                  );
-                },
-                child: const Text('Kodni qayta yuborish'),
               ),
-          ],
+              SizedBox(height: 24.h),
+              Pinput(
+                length: 6,
+                controller: _ctrl,
+                defaultPinTheme: defaultPin,
+                focusedPinTheme: defaultPin.copyWith(
+                  decoration: defaultPin.decoration!.copyWith(
+                    border: Border.all(color: AppColors.gold, width: 2),
+                  ),
+                ),
+                onCompleted: _verify,
+              ),
+              SizedBox(height: 24.h),
+              if (_busy)
+                const CircularProgressIndicator(color: AppColors.gold)
+              else if (_seconds > 0)
+                Container(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 14.w, vertical: 8.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(40.r),
+                    border: Border.all(
+                      color: AppColors.gold.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.timer_rounded,
+                          size: 18.sp, color: AppColors.gold),
+                      SizedBox(width: 6.w),
+                      Text(
+                        'Qayta yuborish: ${(_seconds ~/ 60).toString().padLeft(2, '0')}:${(_seconds % 60).toString().padLeft(2, '0')}',
+                        style: TextStyle(
+                          color: AppColors.gold,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                TextButton.icon(
+                  onPressed: () {
+                    _startTimer();
+                    Fluttertoast.showToast(
+                      msg: 'Tasdiqlash kodi qayta yuborildi',
+                      backgroundColor: AppColors.gold,
+                      textColor: Colors.black,
+                    );
+                  },
+                  icon: const Icon(IconsaxPlusBold.refresh,
+                      color: AppColors.gold),
+                  label: Text(
+                    'Kodni qayta yuborish',
+                    style: TextStyle(
+                      color: AppColors.gold,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13.sp,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

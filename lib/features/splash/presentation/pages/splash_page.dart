@@ -103,15 +103,15 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       final prefs = await SharedPreferences.getInstance();
       final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
 
-      _fadeController.forward().then((_) {
-        if (isLoggedIn) {
-          // User is logged in, go to home
-          context.go('/home');
-        } else {
-          // User is not logged in, go to login page
-          context.go('/phone-login');
-        }
-      });
+      await _fadeController.forward();
+      if (!mounted) return;
+      // PIN lock is handled globally by InactivityLockGate as soon as we leave
+      // the splash route, so just navigate based on auth state here.
+      if (isLoggedIn) {
+        context.go('/home');
+      } else {
+        context.go('/phone-login');
+      }
     }
   }
 
